@@ -1,0 +1,13 @@
+{
+	"compilerOptions": {
+		"target": "es2016",
+		"baseUrl": ".",
+    "paths": {
+      "*": [
+        "*",
+        "../common/*",
+        "../../node_modules/gl-matrix/src/gl-matrix/*"
+      ]
+    }
+	}
+}

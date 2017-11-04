@@ -1,0 +1,33 @@
+{
+  "name": "voxel2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "node node_modules/webpack/bin/webpack.js --env.NODE_ENV=production --progress --display-modules --display-reasons",
+    "dev": "node node_modules/webpack-dev-server/bin/webpack-dev-server.js --env.NODE_ENV=development --open --hot --host localhost --content-base dist/ --progress"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.6.0",
+    "babel-preset-es2015": "^6.24.1",
+    "css-loader": "^0.28.7",
+    "file-loader": "^1.1.5",
+    "gl-matrix": "^2.4.0",
+    "gl-vec3": "^1.0.3",
+    "html-webpack-plugin": "^2.30.1",
+    "js-combinatorics": "^0.5.2",
+    "lodash": "^4.17.4",
+    "twgl.js": "^3.8.0",
+    "uglifyjs-webpack-plugin": "^1.0.0-beta.3",
+    "webpack": "^3.7.1",
+    "webpack-dev-server": "^2.9.2"
+  },
+  "devDependencies": {
+    "@types/gl-matrix": "^2.3.2"
+  }
+}
