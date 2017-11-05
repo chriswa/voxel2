@@ -1,5 +1,4 @@
-const { CHUNK_SIZE, maxQuadsPerMesh } = require("../../constants")
-const Sides = require("./Sides")
+const { CHUNK_SIZE, maxQuadsPerMesh, Sides } = require("../../constants")
 const BlockPos = require("./BlockPos")
 const voxelAabbSweep = require("./voxel-aabb-sweep")
 const Chunk = require("./Chunk")

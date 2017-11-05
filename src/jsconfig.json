@@ -5,8 +5,7 @@
     "paths": {
       "*": [
         "*",
-        "../common/*",
-        "../../node_modules/gl-matrix/src/gl-matrix/*"
+        "common/*"
       ]
     }
 	}

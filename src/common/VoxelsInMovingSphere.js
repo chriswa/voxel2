@@ -1,51 +1,52 @@
-const { vec3 } = require("gl-matrix")
-const { CHUNK_SIZE } = require("../../constants")
-const World = require("./World")
-const ChunkGenWorkerManager = require("./ChunkGenWorkerManager")
-const { voxelSphereAreaByDistance, sortedVoxelDistances } = require("./voxel-prox")
+const VoxelsInSphere = require("./VoxelsInSphere")
 
-module.exports = {
-
-	centreChunkPos: vec3.fromValues(0.5, 0.5, 0.5), // an invalid chunkPos, forcing the first update to load chunks
-
-	loadingChunks: {},
-
-	//queuedDebugChunkOutlines: {},
-
-	init(range) {
-		this.range = range
-	},
-
-	update(force, cameraPos) {
-		if (cameraPos && !force) {
-			const cameraChunkPos = vec3.clone(cameraPos)
-			vec3.scale(cameraChunkPos, 1 / CHUNK_SIZE)
-			vec3.floor(cameraChunkPos, cameraChunkPos)
-			if (vec3.exactEquals(cameraChunkPos, this.centreChunkPos)) { return }
-			this.centreChunkPos.copy(cameraChunkPos)
+class VoxelsInMovingSphere {
+	constructor(radius) {
+		this.centerPos = vec3.fromValues(NaN, NaN, NaN)
+		this.radius = radius
+		this.sortedVoxelList = VoxelsInSphere.getSortedList(radius)
+		this.loadedAbsolutePositions = {}
+		this.newTag = 1
+	}
+	update(newCenterPos) {
+		const addedPositions = []
+		const removedPositions = []
+		// position changed?
+		if (!vec3.exactEquals(this.centerPos, newCenterPos)) {
+			this.newTag = this.newTag === 1 ? 2: 1 // toggle between 1 and 2
+			const cursorPos = vec3.create()
+			this.sortedVoxelList.forEach((deltaPos) => {
+				vec3.copy(cursorPos, deltaPos)
+				vec3.add(cursorPos, cursorPos, newCenterPos)
+				const cursorHash = cursorPos.join(",")
+				// check if this position is new
+				if (!this.loadedAbsolutePositions[cursorHash]) {
+					addedPositions.push(vec3.clone(cursorPos))
+				}
+				// update the tag on this position regardless of whether it's new
+				this.loadedAbsolutePositions[cursorHash] = this.newTag
+			})
+			// check for old (untagged) positions
+			_.each(this.loadedAbsolutePositions, (tag, cursorId) => {
+				if (tag !== this.newTag) {
+					const [x, y, z] = cursorId.split(",")
+					const oldPos = vec3.fromValues(x, y, z)
+					removedPositions.push(oldPos)
+				}
+			})
+			// remember new position for next time
+			vec3.copy(this.centerPos, newCenterPos)
 		}
-		this.loadAndUnloadChunksAroundChunkPos(this.centreChunkPos, this.range)
-	},
-
-	loadAndUnloadChunksAroundChunkPos(centreChunkPos, chunkRange) {
-		let i
-
-		const chunksToLoad = {}
-
-		let chunksWithinDistance = 1
-		for (i = 0; i < voxelSphereAreaByDistance.length; i += 1) {
-			if (voxelSphereAreaByDistance[i][0] > chunkRange) { break }
-			chunksWithinDistance = voxelSphereAreaByDistance[i][1]
+		return {
+			added: addedPositions,
+			removed: removedPositions,
 		}
+	}
+}
 
-		const cursorChunkPos = vec3.create()
-		for (i = 0; i < chunksWithinDistance; i += 1) {
+module.exports = VoxelsInMovingSphere
 
-			vec3.add(cursorChunkPos, centreChunkPos, sortedVoxelDistances[i])
-			const targetChunkId = World.getChunkId(cursorChunkPos)
-
-			chunksToLoad[ targetChunkId ] = vec3.clone(cursorChunkPos)
-		}
+/*
 
 		_.each(World.chunks, chunk => {
 			if (!chunksToLoad[chunk.id]) {
@@ -174,3 +175,4 @@ module.exports = {
 		}
 	},
 }
+*/

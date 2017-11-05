@@ -1,5 +1,4 @@
-const { CHUNK_SIZE } = require("../../constants")
-const Sides = require("./Sides")
+const { CHUNK_SIZE, Sides } = require("geometrics")
 const BlockTypes = require("./BlockTypes")
 const { vec3 } = require("gl-matrix")
 

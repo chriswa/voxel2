@@ -13,3 +13,5 @@ class Pool {
 		this.pool.push(obj)
 	}
 }
+
+module.exports = Pool
