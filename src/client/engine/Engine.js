@@ -12,12 +12,10 @@ module.exports = class Engine {
 	authSetPlayerPos(newPos) {
 		vec3.copy(this.playerPos, newPos)
 	}
-	authAddChunk(chunk) {
-		console.log("add chunk: ", chunk)
-		// TODO: send voxelData to a webworker to be turned into vertex data
+	authAddChunkData(chunkData) {
+		// TODO: webworker
 	}
-	authRemoveChunk(chunk) {
-		console.log("remove chunk: ", chunk)
+	authRemoveChunkData(chunkData) {
 	}
 	authAddEntity() {
 	}

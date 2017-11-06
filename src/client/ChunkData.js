@@ -1,7 +1,7 @@
 const { CHUNK_SIZE_CUBED } = require("geometrics")
 const Pool = require("Pool")
 
-class Chunk {
+class ChunkData {
 	constructor() {
 		this.pos = vec3.create()
 		this.id = "NaN,NaN,NaN"
@@ -14,9 +14,10 @@ class Chunk {
 }
 
 /**
- * TODO: why doesn't this work?
- * @returns {Chunk}
+ * @static
+ * @memberOf ChunkData
+ * @returns {ChunkData}
  */
-Chunk.pool = new Pool(() => new Chunk())
+ChunkData.pool = new Pool(() => new ChunkData())
 
-module.exports = Chunk
+module.exports = ChunkData

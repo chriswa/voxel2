@@ -1,4 +1,4 @@
-class Pool {
+module.exports = class Pool {
 	constructor(createCallback) {
 		this.createCallback = createCallback
 		this.pool = []
@@ -13,5 +13,3 @@ class Pool {
 		this.pool.push(obj)
 	}
 }
-
-module.exports = Pool

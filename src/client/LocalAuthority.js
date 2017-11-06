@@ -8,14 +8,14 @@ const chunkLoadRadius = 2
 module.exports = class LocalAuthority {
 	constructor() {
 		this.chunks = {}
-		this.chunkGenerator = new LocalChunkGenerator(chunk => this.onChunkGenerated(chunk))
+		this.chunkGenerator = new LocalChunkGenerator(chunkData => this.onChunkDataGenerated(chunkData))
 		this.engine = new Engine(this)
 		this.playerPos = vec3.create()
 		this.voxelsInMovingSphere = new VoxelsInMovingSphere(chunkLoadRadius)
 		this.updatePlayerPos(vec3.fromValues(0, 0, 0)) // start chunks loading
 	}
 	render(time) {
-		this.chunkGenerator.doSomeWork()
+		this.chunkGenerator.work()
 		this.engine.authRender(time)
 	}
 
@@ -28,24 +28,19 @@ module.exports = class LocalAuthority {
 		})
 		chunkChanges.removed.forEach(chunkPos => {
 			const chunkId = chunkPos.join(",")
-			console.log(`CHUNK CHANGES: ${chunkId} REMOVED`)
 			const chunk = this.chunks[chunkId]
-			if (chunk) { // if already loaded, unload it
-				this.onChunkRemoved(chunk)
-			}
-			else { // otherwise, cancel the generation
-				this.chunkGenerator.cancelChunkGeneration(chunkPos)
-			}
+			if (chunk) { this.onChunkRemoved(chunk) }                          // if already loaded, unload it
+			else       { this.chunkGenerator.cancelChunkGeneration(chunkPos) } // otherwise, cancel its queued generation
 		})
 	}
-	onChunkGenerated(chunk) { // called by chunkLoader
-		this.chunks[chunk.id] = chunk
-		this.engine.authAddChunk(chunk)
-		// TODO: if engine isn't started yet, and enough (some? all?) chunks have been loaded, call engine.authStart()
+	onChunkDataGenerated(chunkData) {
+		this.chunks[chunkData.id] = chunkData
+		this.engine.authAddChunkData(chunkData)
+		// TODO: if engine isn't started yet, and enough (some? all?) chunks have been loaded, start it with engine.authStart()
 	}
-	onChunkRemoved(chunk) {
-		delete this.chunks[chunk.id]
-		this.engine.authRemoveChunk(chunk)
+	onChunkRemoved(chunkData) {
+		delete this.chunks[chunkData.id]
+		this.engine.authRemoveChunkData(chunkData)
 	}
 
 	// "engine" functions are called by Engine to provide user interaction information

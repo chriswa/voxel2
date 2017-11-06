@@ -1,9 +1,9 @@
-const { CHUNK_SIZE, CHUNK_SIZE_CUBED } = require("geometrics")
-const Chunk = require("./Chunk")
+const { CHUNK_SIZE } = require("geometrics")
+const ChunkData = require("./ChunkData")
 
 class LocalChunkGenerator {
-	constructor(onChunkGenerated) {
-		this.onChunkGenerated = onChunkGenerated
+	constructor(onChunkDataGenerated) {
+		this.onChunkDataGenerated = onChunkDataGenerated
 		this.chunksToGenerate = {}
 	}
 	queueChunkGeneration(chunkPos) {
@@ -14,7 +14,7 @@ class LocalChunkGenerator {
 		const chunkId = chunkPos.join(",")
 		delete this.chunksToGenerate[chunkId]
 	}
-	doSomeWork() {
+	work() {
 		for (let chunkId in this.chunksToGenerate) {
 			const chunkPos = this.chunksToGenerate[chunkId]
 			delete(this.chunksToGenerate[chunkId])
@@ -23,24 +23,26 @@ class LocalChunkGenerator {
 		}
 	}
 	generateChunk(chunkPos) {
-		const chunk = Chunk.pool.acquire() // n.b. chunk.blocks may contain old data
-		chunk.setChunkPos(chunkPos)
+
+		/** @type {ChunkData} */
+		const chunkData = ChunkData.pool.acquire() // n.b. chunkData may contain old data, so make sure to set everything!
+		chunkData.setChunkPos(chunkPos)
+
+		// SAMPLE TERRAIN GENERATION
+
 		let blockIndex = 0
 		for (let x = 0; x < CHUNK_SIZE; x += 1) {
 			for (let z = 0; z < CHUNK_SIZE; z += 1) {
-
 				const terrainHeight = Math.floor(CHUNK_SIZE / 2 + Math.random() * 3 - 1)
-
 				for (let y = 0; y < CHUNK_SIZE; y += 1) {
-
 					const blockData = (y + chunkPos[1] * CHUNK_SIZE < terrainHeight) ? 1 : 0
-					chunk.blocks[blockIndex] = blockData
-
+					chunkData.blocks[blockIndex] = blockData
 					blockIndex += 1
 				}
 			}
 		}
-		this.onChunkGenerated(chunk)
+
+		this.onChunkDataGenerated(chunkData)
 	}
 }
 
