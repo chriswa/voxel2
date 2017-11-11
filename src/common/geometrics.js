@@ -13,6 +13,23 @@ geometrics.maxVerts         = 64 * 1024 // this should be 64k
 geometrics.maxQuadsPerChunk = geometrics.maxVerts / geometrics.uniqVertsPerFace
 geometrics.maxQuadsPerMesh  = 1200
 
+geometrics.createIndexBufferTypedArray = () => {
+	const array = new Uint32Array(geometrics.maxQuadsPerChunk * geometrics.indicesPerFace)
+	let arrayIndex = 0
+	let vertIndex = 0
+	for (let quadIndex = 0; quadIndex < geometrics.maxQuadsPerChunk; quadIndex += 1) {
+		array[arrayIndex + 0] = vertIndex + 0
+		array[arrayIndex + 1] = vertIndex + 1
+		array[arrayIndex + 2] = vertIndex + 2
+		array[arrayIndex + 3] = vertIndex + 0
+		array[arrayIndex + 4] = vertIndex + 2
+		array[arrayIndex + 5] = vertIndex + 3
+		arrayIndex += 6
+		vertIndex += 4
+	}
+	return array
+}
+
 /**
  * TODO: why isn't this jsdoc working?
  * @param vec3 worldPos
