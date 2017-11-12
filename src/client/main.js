@@ -1,6 +1,6 @@
-const LocalAuthority = require("./LocalAuthority")
-
 global.gl = document.getElementById("mainCanvas").getContext("webgl2")
+
+const LocalAuthority = require("./LocalAuthority")
 
 // http://www.realtimerendering.com/blog/debugging-webgl-with-spectorjs/
 if (global.spector) {

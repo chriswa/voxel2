@@ -1,7 +1,11 @@
-const twgl = require("twgl.js")
+//const twgl = require("twgl.js")
 const geometrics = require("geometrics")
 const EngineChunk = require("./EngineChunk")
 const EngineChunkRenderer = require("./EngineChunkRenderer")
+const EngineChunkBuilder = require("./EngineChunkBuilder")
+const Pool = require("Pool")
+
+const quadIdsByBlockAndSidePool = new Pool(() => new Uint16Array(geometrics.CHUNK_SIZE_CUBED * geometrics.facesPerCube))
 
 module.exports = class Engine {
 	constructor(authority) {
@@ -9,8 +13,8 @@ module.exports = class Engine {
 		this.started = false
 		this.playerPos = vec3.fromValues(0, 0, 0) // placeholder value until authority updates us
 		this.chunks = {}
-		this.chunkRenderer = new EngineChunkRenderer()
 	}
+
 
 	// "auth" methods are called by authority
 	authSetPlayerPos(newPos) {
@@ -18,14 +22,16 @@ module.exports = class Engine {
 	}
 	authAddChunkData(chunkData) {
 		// TODO: pass chunkData to webworker, when it's finished, get back chunkData, 0+ vertex buffers, and quadCount: use those to pre-build an EngineChunk, then "stitch" it to neighbouring chunks
-
 		// ...but for now
-		const { vertexBuffers, quadCount } = VoxelMesher.drawInternalChunkQuads(chunkData)
-		const engineChunk = new EngineChunk(this, chunkData, vertexBuffers, quadCount)
-		this.chunks[chunkData.id] = engineChunk
-
+		const quadIdsByBlockAndSide = quadIdsByBlockAndSidePool.acquire()
+		const { quadCount, vertexArrays } = EngineChunkBuilder.drawInternalChunkQuads(chunkData, quadIdsByBlockAndSide)
+		const chunk = new EngineChunk(chunkData, quadCount, vertexArrays, quadIdsByBlockAndSide)
+		this.chunks[chunkData.id] = chunk
 	}
-	authRemoveChunkData(_chunkData) {
+	authRemoveChunkData(chunkData) {
+		const chunk = this.chunks[chunkData.id]
+		quadIdsByBlockAndSidePool.release(chunk.quadIdsByBlockAndSide)
+		chunk.destroy()
 	}
 	authAddEntity() {
 	}
@@ -36,7 +42,7 @@ module.exports = class Engine {
 	authStart() {
 		this.started = true
 	}
-	authRender(time) {
+	authRender(_time) {
 		// TODO: if started, do player control including gravity, and send current position to this.authority.simUpdatePlayerPos()
 		// TODO: also call any other this.authority.sim* methods depending on player input
 
@@ -47,9 +53,9 @@ module.exports = class Engine {
 		//const Gfx = require("../Gfx")
 		//Gfx.render(time)
 
-		this.chunkRenderer.preRender()
+		EngineChunkRenderer.preRender()
 
-		let renderBudget = 100 // ??????
+		let renderBudget = 1000 // TODO: this is a totally arbitrary number
 		_.each(this.chunks, chunk => {
 			renderBudget = chunk.render(renderBudget)
 		})

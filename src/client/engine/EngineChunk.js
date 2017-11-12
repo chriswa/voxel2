@@ -1,27 +1,40 @@
 const { CHUNK_SIZE, maxQuadsPerMesh } = require("geometrics")
 //const ChunkData = require("../ChunkData")
-const EngineChunkMesh = require("EngineChunkMesh")
+const EngineChunkVertexArrayPool = require("./EngineChunkVertexArrayPool")
+const EngineChunkRenderer = require("./EngineChunkRenderer")
+const EngineChunkMesh = require("./EngineChunkMesh")
 
+/**
+ * @callback acquireVAO
+ * @returns {EngineChunkMeshVAO}
+ */
 class EngineChunk {
 	/**
-	 * 
-	 * @param {ChunkData} chunkData 
+	 * create a renderable chunk using pre-generated chunkData and pre-built vertex arrays
+	 * @param {ChunkData} chunkData
+	 * @param {number} quadCount
+	 * @param {Array.<Float32Array>} initialVertexArrays
+	 * @param {UInt16Array} quadIdsByBlockAndSide
 	 */
-	constructor(engine, chunkData, initialVertexArrays = [], quadCount = 0) {
-		this.engine = engine
+	constructor(chunkData, quadCount, initialVertexArrays, quadIdsByBlockAndSide) {
 		this.chunkData = chunkData
+		this.quadCount = quadCount
+		this.meshes = initialVertexArrays.map(initialVertexArray => new EngineChunkMesh(EngineChunkRenderer.acquireVAO(), initialVertexArray))
+		this.quadIdsByBlockAndSide = quadIdsByBlockAndSide
+
 		this.worldPos = vec3.clone(chunkData.pos)
 		vec3.scale(this.worldPos, this.worldPos, CHUNK_SIZE)
-		this.meshes = initialVertexArrays.map(initialVertexArray => new EngineChunkMesh(engine, initialVertexArray))
-		this.quadCount = quadCount
-		this.quadDirtyList = [] // quads which have been removed this frame and have not been written to (candidates for immediate writing)
+		this.quadDirtyList = [] // quads which have been removed this frame and have not been written to (candidates for intra-frame reuse)
 		this.quadHoleList = [] // quads which may be reused, but have already been zero'd out (dirty quads that did not get used)
 	}
 	addNewMesh() {
-		this.meshes.push(new EngineChunkMesh(this.engine))
+		this.meshes.push(new EngineChunkMesh(EngineChunkRenderer.acquireVAO(), EngineChunkVertexArrayPool.acquire()))
 	}
 	destroy() {
-		this.meshes.forEach(mesh => mesh.destroy())
+		this.meshes.forEach(mesh => {
+			EngineChunkVertexArrayPool.release(mesh.vertexArray)
+			mesh.vao.destroy()
+		})
 	}
 
 	addQuad(blockPos, side, uvs) {

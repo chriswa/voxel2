@@ -81,11 +81,14 @@ class EngineChunkMeshVAO {
 		// note: it's assumed that EngineChunkRenderer.preRender() has already been called!
 		twgl.setBuffersAndAttributes(gl, this.renderer.programInfo, this.vaoInfo)
 		// twgl.drawBufferInfo(gl, this.vaoInfo) ... but i want to set an upper limit
-		gl.drawElements(gl.TRIANGLES, quadCount * geometrics.indicesPerFace, indexBufferGlType)
+		gl.drawElements(gl.TRIANGLES, quadCount * geometrics.indicesPerFace, indexBufferGlType, 0)
+	}
+	destroy() {
+		this.renderer.releaseVAO(this)
 	}
 }
 
-module.exports = class EngineChunkRenderer {
+module.exports = new class EngineChunkRenderer {
 	constructor() {
 		this.texture = twgl.createTexture(gl, { src: "minecraft15.png", minMag: gl.NEAREST })
 		this.programInfo = twgl.createProgramInfo(gl, [vertexShaderSource, fragmentShaderSource], packedAttribOrder)

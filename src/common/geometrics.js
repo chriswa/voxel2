@@ -13,6 +13,9 @@ geometrics.maxVerts         = 64 * 1024 // this should be 64k
 geometrics.maxQuadsPerChunk = geometrics.maxVerts / geometrics.uniqVertsPerFace
 geometrics.maxQuadsPerMesh  = 1200
 
+geometrics.vertexByteSize = 8
+geometrics.quadVertexByteSize = geometrics.vertexByteSize * 4
+
 geometrics.createIndexBufferTypedArray = () => {
 	const array = new Uint32Array(geometrics.maxQuadsPerChunk * geometrics.indicesPerFace)
 	let arrayIndex = 0
