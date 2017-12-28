@@ -1,15 +1,15 @@
 module.exports = class Pool {
 	constructor(createCallback) {
 		this.createCallback = createCallback
-		this.pool = []
+		this.items = []
 	}
 	acquire() {
-		if (this.pool.length) {
-			return this.pool.pop()
+		if (this.items.length) {
+			return this.items.pop()
 		}
 		return this.createCallback()
 	}
 	release(obj) {
-		this.pool.push(obj)
+		this.items.push(obj)
 	}
 }

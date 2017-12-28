@@ -2,32 +2,50 @@ const geometrics = require("geometrics")
 const Engine = require("./engine/Engine")
 const VoxelsInMovingSphere = require("VoxelsInMovingSphere")
 const LocalChunkGenerator = require("./LocalChunkGenerator")
+const v3 = require("v3")
 
-const chunkLoadRadius = 2
+const chunkLoadRadius = 1
 
 module.exports = class LocalAuthority {
 	constructor() {
 		this.chunks = {}
 		this.chunkGenerator = new LocalChunkGenerator(chunkData => this.onChunkDataGenerated(chunkData))
 		this.engine = new Engine(this)
-		this.playerPos = vec3.create()
+		this.playerPos = new v3(0, 0, 0)
+		this.playerRot = new v3(0, 0, 0)
+		
+		if (window.localStorage.playerTransform) {
+			const [x, y, z, pitch, heading, _roll ] = window.localStorage.playerTransform.split(",").map(parseFloat)
+			this.playerPos.set(x, y, z)
+			this.playerRot.set(pitch, heading, 0)
+			this.engine.authSetPlayerTransform(this.playerPos, this.playerRot)
+		}
+		
 		this.voxelsInMovingSphere = new VoxelsInMovingSphere(chunkLoadRadius)
-		this.updatePlayerPos(vec3.fromValues(0, 0, 0)) // start chunks loading
+		this.updatePlayerPos(this.playerPos, this.playerRot) // start chunks loading
 	}
-	render(time) {
+	onFrame(time) {
 		this.chunkGenerator.work()
-		this.engine.authRender(time)
+		this.engine.authOnFrame(time)
 	}
 
-	updatePlayerPos(newPlayerPos) {
-		vec3.copy(this.playerPos, newPlayerPos) // record new playerPos
+	updatePlayerPos(newPlayerPos, newPlayerRot) {
+		
+		// TESTING: store current values for reloading the page and staying in the same place
+		window.localStorage.playerTransform = newPlayerPos.toString() + ',' + newPlayerRot.toString()
+
+		// record new vectors
+		this.playerPos.setFrom(newPlayerPos)
+		this.playerRot.setFrom(newPlayerRot)
+
+		// load and unload chunks as needed
 		const chunkPos = geometrics.worldPosToChunkPos(newPlayerPos)
 		const chunkChanges = this.voxelsInMovingSphere.update(chunkPos)
 		chunkChanges.added.forEach(chunkPos => {
 			this.chunkGenerator.queueChunkGeneration(chunkPos)
 		})
 		chunkChanges.removed.forEach(chunkPos => {
-			const chunkId = chunkPos.join(",")
+			const chunkId = chunkPos.toString()
 			const chunk = this.chunks[chunkId]
 			if (chunk) { this.onChunkRemoved(chunk) }                          // if already loaded, unload it
 			else       { this.chunkGenerator.cancelChunkGeneration(chunkPos) } // otherwise, cancel its queued generation
@@ -45,8 +63,8 @@ module.exports = class LocalAuthority {
 
 	// "engine" functions are called by Engine to provide user interaction information
 
-	engineUpdatePlayerPos(newPlayerPos) {
-		this.updatePlayerPos(newPlayerPos)
+	engineUpdatePlayerPos(newPlayerPos, newPlayerRot) {
+		this.updatePlayerPos(newPlayerPos, newPlayerRot)
 	}
 	enginePlaceBlockCreative(_blockType, _targetBlockPos, _targetBlockSide) { // e.g. for testing
 	}

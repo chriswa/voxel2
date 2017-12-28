@@ -1,3 +1,5 @@
+const v3 = require("v3")
+
 const geometrics = {}
 module.exports = geometrics
 
@@ -33,26 +35,21 @@ geometrics.createIndexBufferTypedArray = () => {
 	return array
 }
 
-/**
- * TODO: why isn't this jsdoc working?
- * @param vec3 worldPos
- * @returns vec3
- */
 geometrics.worldPosToChunkPos = function(worldPos) {
-	const chunkPos = vec3.clone(worldPos)
-	vec3.scale(chunkPos, chunkPos, 1 / geometrics.CHUNK_SIZE)
-	vec3.floor(chunkPos, chunkPos)
-	return chunkPos
+	return worldPos.clone().divideScalar(geometrics.CHUNK_SIZE).floor()
 }
 
+geometrics.vectorToBlockIndex = v => {
+	return v.x * geometrics.CHUNK_SIZE_SQUARED + v.z * geometrics.CHUNK_SIZE + v.y
+}
 // Sides
 
-const T = { name: "TOP", id: 0, verts: [0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0,], dx: 0, dy: 1, dz: 0, size: geometrics.CHUNK_SIZE, deltaIndex: -1, }
-const B = { name: "BOTTOM", id: 1, verts: [0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1,], dx: 0, dy: -1, dz: 0, size: geometrics.CHUNK_SIZE, deltaIndex: 1, }
-const N = { name: "NORTH", id: 2, verts: [1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1,], dx: 0, dy: 0, dz: 1, size: geometrics.CHUNK_SIZE, deltaIndex: geometrics.CHUNK_SIZE, }
-const S = { name: "SOUTH", id: 3, verts: [0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0,], dx: 0, dy: 0, dz: -1, size: geometrics.CHUNK_SIZE, deltaIndex: -geometrics.CHUNK_SIZE, }
-const E = { name: "EAST", id: 4, verts: [1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1,], dx: 1, dy: 0, dz: 0, size: geometrics.CHUNK_SIZE, deltaIndex: geometrics.CHUNK_SIZE * geometrics.CHUNK_SIZE, }
-const W = { name: "WEST", id: 5, verts: [0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0,], dx: -1, dy: 0, dz: 0, size: geometrics.CHUNK_SIZE, deltaIndex: -geometrics.CHUNK_SIZE * geometrics.CHUNK_SIZE, }
+const T = { name: "TOP", id: 0, axis: 1, axisDelta: 1, verts: [0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0,], dx: 0, dy: 1, dz: 0, size: geometrics.CHUNK_SIZE, deltaIndex: 1, }
+const B = { name: "BOTTOM", id: 1, axis: 1, axisDelta: -1, verts: [0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1,], dx: 0, dy: -1, dz: 0, size: geometrics.CHUNK_SIZE, deltaIndex: -1, }
+const N = { name: "NORTH", id: 2, axis: 2, axisDelta: 1, verts: [1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1,], dx: 0, dy: 0, dz: 1, size: geometrics.CHUNK_SIZE, deltaIndex: geometrics.CHUNK_SIZE, }
+const S = { name: "SOUTH", id: 3, axis: 2, axisDelta: -1, verts: [0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0,], dx: 0, dy: 0, dz: -1, size: geometrics.CHUNK_SIZE, deltaIndex: -geometrics.CHUNK_SIZE, }
+const E = { name: "EAST", id: 4, axis: 0, axisDelta: 1, verts: [1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1,], dx: 1, dy: 0, dz: 0, size: geometrics.CHUNK_SIZE, deltaIndex: geometrics.CHUNK_SIZE_SQUARED, }
+const W = { name: "WEST", id: 5, axis: 0, axisDelta: -1, verts: [0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0,], dx: -1, dy: 0, dz: 0, size: geometrics.CHUNK_SIZE, deltaIndex: -geometrics.CHUNK_SIZE_SQUARED, }
 
 geometrics.Sides = {
 	TOP: T,
@@ -64,7 +61,7 @@ geometrics.Sides = {
 }
 
 _.each(geometrics.Sides, side => {
-	side.deltaV3 = vec3.fromValues(side.dx, side.dy, side.dz)
+	side.deltaV3 = new v3(side.dx, side.dy, side.dz)
 })
 
 T.tangents = [{ side: N, tangents: [E, W] }, { side: E, tangents: [S, N] }, { side: S, tangents: [W, E] }, { side: W, tangents: [N, S] }]
@@ -83,6 +80,8 @@ W.opposite = E
 
 geometrics.Sides.byId = [T, B, N, S, E, W]
 
+geometrics.Sides.byAxis = [ [E, W], [T, B], [N, S] ]
+
 geometrics.Sides.each = callback => {
 	for (var sideId = 0; sideId < 6; sideId += 1) {
 		callback(geometrics.Sides.byId[sideId])
@@ -94,3 +93,4 @@ geometrics.Sides.findFromNormal = normal => {
 		return Math.abs(side.dx - normal.x) + Math.abs(side.dy - normal.y) + Math.abs(side.dz - normal.z)
 	})
 }
+

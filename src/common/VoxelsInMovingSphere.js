@@ -1,8 +1,9 @@
+const v3 = require("v3")
 const VoxelsInSphere = require("./VoxelsInSphere")
 
 class VoxelsInMovingSphere {
 	constructor(radius) {
-		this.centerPos = vec3.fromValues(NaN, NaN, NaN)
+		this.centerPos = new v3(NaN, NaN, NaN)
 		this.radius = radius
 		this.sortedVoxelList = VoxelsInSphere.getSortedList(radius)
 		this.loadedAbsolutePositions = {}
@@ -12,16 +13,15 @@ class VoxelsInMovingSphere {
 		const addedPositions = []
 		const removedPositions = []
 		// position changed?
-		if (!vec3.exactEquals(this.centerPos, newCenterPos)) {
-			this.newTag = this.newTag === 1 ? 2: 1 // toggle between 1 and 2
-			const cursorPos = vec3.create()
+		if (!this.centerPos.exactEquals(newCenterPos)) {
+			this.newTag = this.newTag === 1 ? 2 : 1 // toggle between 1 and 2
+			const cursorPos = new v3()
 			this.sortedVoxelList.forEach((deltaPos) => {
-				vec3.copy(cursorPos, deltaPos)
-				vec3.add(cursorPos, cursorPos, newCenterPos)
-				const cursorHash = cursorPos.join(",")
+				cursorPos.set(deltaPos[0], deltaPos[1], deltaPos[2]).add(newCenterPos)
+				const cursorHash = cursorPos.toString()
 				// check if this position is new
 				if (!this.loadedAbsolutePositions[cursorHash]) {
-					addedPositions.push(vec3.clone(cursorPos))
+					addedPositions.push(cursorPos.clone())
 				}
 				// update the tag on this position regardless of whether it's new
 				this.loadedAbsolutePositions[cursorHash] = this.newTag
@@ -30,12 +30,13 @@ class VoxelsInMovingSphere {
 			_.each(this.loadedAbsolutePositions, (tag, cursorId) => {
 				if (tag !== this.newTag) {
 					const [x, y, z] = cursorId.split(",")
-					const oldPos = vec3.fromValues(x, y, z)
+					const oldPos = new v3(x, y, z)
 					removedPositions.push(oldPos)
+					delete this.loadedAbsolutePositions[cursorId]
 				}
 			})
 			// remember new position for next time
-			vec3.copy(this.centerPos, newCenterPos)
+			this.centerPos.setFrom(newCenterPos)
 		}
 		return {
 			added: addedPositions,

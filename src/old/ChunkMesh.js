@@ -30,7 +30,7 @@ class ChunkMeshManager {
 	constructor(parentObject3d) {
 		this.parentObject3d = parentObject3d
 		this.chunkMeshes = []
-		this.quadCount = 1 // for development, skip the first quad, so we can know that a quadId of 0 is bad data
+		this.quadCount = 0
 		this.quadHoleList = []
 		this.quadDirtyList = []
 	}

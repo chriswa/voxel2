@@ -17,7 +17,7 @@ const config = {
 		"lodash": "_",
 		"twgl.js": "twgl",
 		"gl-matrix": "glMatrix",
-		"vec3": "vec3",
+		//"vec3": "vec3",
 		"vec2": "vec2",
 		"mat4": "mat4",
 	},

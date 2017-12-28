@@ -6,10 +6,10 @@ declare module vec2 {
 	export = vec2;
 }
 
-declare module vec3 {
-	import vec3 from "gl-matrix/src/gl-matrix/vec3";
-	export = vec3;
-}
+//declare module vec3 {
+//	import vec3 from "gl-matrix/src/gl-matrix/vec3";
+//	export = vec3;
+//}
 
 declare module mat4 {
 	import mat4 from "gl-matrix/src/gl-matrix/mat4";

@@ -1,4 +1,4 @@
-const { CHUNK_SIZE, maxQuadsPerMesh } = require("geometrics")
+const geometrics = require("geometrics")
 //const ChunkData = require("../ChunkData")
 const EngineChunkVertexArrayPool = require("./EngineChunkVertexArrayPool")
 const EngineChunkRenderer = require("./EngineChunkRenderer")
@@ -19,16 +19,20 @@ class EngineChunk {
 	constructor(chunkData, quadCount, initialVertexArrays, quadIdsByBlockAndSide) {
 		this.chunkData = chunkData
 		this.quadCount = quadCount
-		this.meshes = initialVertexArrays.map(initialVertexArray => new EngineChunkMesh(EngineChunkRenderer.acquireVAO(), initialVertexArray))
+		this.meshes = []
+		initialVertexArrays.forEach((initialVertexArray, i) => {
+			const initialWriteCount = Math.min(geometrics.maxQuadsPerMesh, quadCount - (i * geometrics.maxQuadsPerMesh))
+			this.meshes.push(new EngineChunkMesh(EngineChunkRenderer.acquireVAO(), initialVertexArray, initialWriteCount))
+		})
 		this.quadIdsByBlockAndSide = quadIdsByBlockAndSide
 
-		this.worldPos = vec3.clone(chunkData.pos)
-		vec3.scale(this.worldPos, this.worldPos, CHUNK_SIZE)
+		this.worldPos = chunkData.pos.clone().multiplyScalar(geometrics.CHUNK_SIZE)
+		this.neighboursBySideId = []
 		this.quadDirtyList = [] // quads which have been removed this frame and have not been written to (candidates for intra-frame reuse)
 		this.quadHoleList = [] // quads which may be reused, but have already been zero'd out (dirty quads that did not get used)
 	}
 	addNewMesh() {
-		this.meshes.push(new EngineChunkMesh(EngineChunkRenderer.acquireVAO(), EngineChunkVertexArrayPool.acquire()))
+		this.meshes.push(new EngineChunkMesh(EngineChunkRenderer.acquireVAO(), new Float32Array(EngineChunkVertexArrayPool.acquire()), 0))
 	}
 	destroy() {
 		this.meshes.forEach(mesh => {
@@ -37,7 +41,14 @@ class EngineChunk {
 		})
 	}
 
-	addQuad(blockPos, side, uvs) {
+	attachNeighbour(side, neighbourChunk) {
+		this.neighboursBySideId[side.id] = neighbourChunk
+	}
+	detatchNeighbour(side) {
+		this.neighboursBySideId[side.id] = undefined
+	}
+
+	addQuad(blockPos, side, uvs, brightnesses) {
 		let quadId
 		// prefer to draw over dirty quads, which will need to be updated anyway
 		if (this.quadDirtyList.length) {
@@ -53,7 +64,7 @@ class EngineChunk {
 			this.quadCount += 1
 		}
 
-		const meshIndex = Math.floor(quadId / maxQuadsPerMesh)
+		const meshIndex = Math.floor(quadId / geometrics.maxQuadsPerMesh)
 
 		// do we need to add a new mesh?
 		if (meshIndex > this.meshes.length - 1) {
@@ -61,29 +72,36 @@ class EngineChunk {
 		}
 
 		const mesh = this.meshes[meshIndex]
-		const meshQuadId = quadId % maxQuadsPerMesh
+		const meshQuadId = quadId % geometrics.maxQuadsPerMesh
 
-		mesh.drawQuad(meshQuadId, blockPos, side, uvs)
+		mesh.drawQuad(meshQuadId, blockPos, side, uvs, brightnesses)
+
+		this.quadIdsByBlockAndSide[blockPos.i * 6 + side.id] = quadId + 1
 
 		return quadId
 	}
-	removeQuad(quadId) {
-		this.quadDirtyList.push(quadId) // leave it in the vertexArray for now, in case another quad needs to be drawn this frame!
+	removeQuad(blockPos, side) {
+		const quadId = this.quadIdsByBlockAndSide[blockPos.i * 6 + side.id] - 1
+		if (quadId > -1) {
+			this.quadIdsByBlockAndSide[blockPos.i * 6 + side.id] = 0
+			this.quadDirtyList.push(quadId) // leave it in the vertexArray for now, in case another quad needs to be drawn this frame!
+		}
 	}
 
 	render(renderBudget) {
+		window.chunkName = this.chunkData.pos.toString() // DEBUG
 		this.cleanupRemovedQuads()
 		this.meshes.forEach((mesh, meshId) => {
-			const quadCount = meshId === this.meshes.length - 1 ? this.quadCount % maxQuadsPerMesh : maxQuadsPerMesh
+			const quadCount = meshId === this.meshes.length - 1 ? this.quadCount % geometrics.maxQuadsPerMesh : geometrics.maxQuadsPerMesh
 			renderBudget = mesh.render(renderBudget, quadCount)
 		})
 		return renderBudget
 	}
 	cleanupRemovedQuads() {
 		this.quadDirtyList.forEach(quadId => {
-			const meshIndex = Math.floor(quadId / maxQuadsPerMesh)
+			const meshIndex = Math.floor(quadId / geometrics.maxQuadsPerMesh)
 			const mesh = this.meshes[meshIndex]
-			const meshQuadId = quadId % maxQuadsPerMesh
+			const meshQuadId = quadId % geometrics.maxQuadsPerMesh
 
 			mesh.clearQuad(meshQuadId)
 

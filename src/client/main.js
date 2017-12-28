@@ -14,8 +14,8 @@ if (global.spector) {
 // TODO: fsm with menu... but for now, just start a local game
 const authority = new LocalAuthority()
 
-function render(time) {
-	authority.render(time)
-	requestAnimationFrame(render)
+function onFrame(time) {
+	authority.onFrame(time)
+	requestAnimationFrame(onFrame)
 }
-requestAnimationFrame(render)
+requestAnimationFrame(onFrame)

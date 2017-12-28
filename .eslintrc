@@ -14,10 +14,6 @@
             "error",
             "windows"
         ],
-        "quotes": [
-            "error",
-            "double"
-        ],
         "semi": [
             "error",
             "never"
@@ -34,8 +30,6 @@
     "globals": {
         "_": false,
         "gl": false,
-        "vec3": false,
-        "vec2": false,
         "mat4": false
     }
 }

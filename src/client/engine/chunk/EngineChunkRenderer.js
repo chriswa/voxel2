@@ -22,9 +22,9 @@ const vertexShaderSource = `#version 300 es
 	out vec3 v_color;
 
 	void main() {
-			gl_Position = u_worldViewProjection * a_position;
-			v_texcoord = a_texcoord;
-			v_color = a_color;
+		gl_Position = u_worldViewProjection * a_position;
+		v_texcoord = a_texcoord;
+		v_color = a_color;
 	}`
 
 const fragmentShaderSource = `#version 300 es
@@ -36,7 +36,7 @@ const fragmentShaderSource = `#version 300 es
 	out vec4 fragColor;
 
 	void main() {
-			fragColor = texture(u_texture, v_texcoord) * vec4(v_color, 1.);
+		fragColor = texture(u_texture, v_texcoord) * vec4(v_color, 1.);
 	}`
 
 const indexBufferGlType = gl.UNSIGNED_SHORT
@@ -61,7 +61,7 @@ class EngineChunkMeshVAO {
 		// ...except that we don't need to send the array to the GPU yet (because it doens't have any data in it yet)
 		this.glBuffer = gl.createBuffer()
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.glBuffer)
-		gl.bufferData(gl.ARRAY_BUFFER, geometrics.maxVertsPerMesh * vertexByteStride, gl.DYNAMIC_DRAW)
+		gl.bufferData(gl.ARRAY_BUFFER, geometrics.maxQuadsPerMesh * 4 * vertexByteStride, gl.DYNAMIC_DRAW)
 
 		const bufferInfo = {
 			numElements: geometrics.maxVertsPerMesh,
@@ -90,7 +90,7 @@ class EngineChunkMeshVAO {
 
 module.exports = new class EngineChunkRenderer {
 	constructor() {
-		this.texture = twgl.createTexture(gl, { src: "minecraft15.png", minMag: gl.NEAREST })
+		this.texture = twgl.createTexture(gl, { src: "minecraft15.png", mag: gl.NEAREST, min: gl.NEAREST, level: 0, auto: false })
 		this.programInfo = twgl.createProgramInfo(gl, [vertexShaderSource, fragmentShaderSource], packedAttribOrder)
 		this.indexBuffer = createIndexBuffer(gl)
 		this.vaoPool = new Pool(() => new EngineChunkMeshVAO(this))
@@ -101,11 +101,17 @@ module.exports = new class EngineChunkRenderer {
 	releaseVAO(vao) {
 		this.vaoPool.release(vao)
 	}
-	preRender() {
+	initRenderProgram() {
+		gl.useProgram(this.programInfo.program)
 		const uniforms = {
 			u_texture: this.texture,
 		}
-		gl.useProgram(this.programInfo.program)
+		twgl.setUniforms(this.programInfo, uniforms)
+	}
+	setWorldViewProjectionMatrix(worldViewProjectionMatrix) {
+		const uniforms = {
+			u_worldViewProjection: worldViewProjectionMatrix,
+		}
 		twgl.setUniforms(this.programInfo, uniforms)
 	}
 }

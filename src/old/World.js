@@ -35,7 +35,7 @@ const World = module.exports = {
 		// attach the chunk to any loaded neighbouring chunks
 		for (var sideId = 0; sideId < 6; sideId += 1) {
 			var side = Sides.byId[sideId]
-			var neighbourChunkPos = chunk.chunkPos.clone().add(side.deltaVector3)
+			var neighbourChunkPos = chunk.chunkPos.clone().add(side.deltaV3)
 			var neighbourChunk = this.chunks[ this.getChunkId(neighbourChunkPos) ]
 			if (neighbourChunk) {
 				chunk.attachChunkNeighbour(side, neighbourChunk)
