@@ -10,7 +10,10 @@ const m4 = twgl.m4
 const PlayerInput = require("./PlayerInput")
 
 
-const quadIdsByBlockAndSidePool = new Pool(() => new Uint16Array(geometrics.CHUNK_SIZE_CUBED * geometrics.facesPerCube))
+const quadIdsByBlockAndSidePool = new Pool(
+	() => new Uint16Array(geometrics.CHUNK_SIZE_CUBED * geometrics.facesPerCube),
+	item => item.fill(0)
+)
 
 const projectionMatrix = m4.identity() // set below
 const fov = 60 * Math.PI / 180

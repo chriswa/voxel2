@@ -4,7 +4,7 @@ const VoxelsInMovingSphere = require("VoxelsInMovingSphere")
 const LocalChunkGenerator = require("./LocalChunkGenerator")
 const v3 = require("v3")
 
-const chunkLoadRadius = 1
+const chunkLoadRadius = 3
 
 module.exports = class LocalAuthority {
 	constructor() {
@@ -41,6 +41,7 @@ module.exports = class LocalAuthority {
 		// load and unload chunks as needed
 		const chunkPos = geometrics.worldPosToChunkPos(newPlayerPos)
 		const chunkChanges = this.voxelsInMovingSphere.update(chunkPos)
+		if (chunkChanges.added.length) { console.log(`%cLocalAuthority: new chunk center is ${chunkPos.id}`, 'background: #222; color: #bada55') }
 		chunkChanges.added.forEach(chunkPos => {
 			this.chunkGenerator.queueChunkGeneration(chunkPos)
 		})

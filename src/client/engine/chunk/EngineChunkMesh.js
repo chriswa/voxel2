@@ -1,9 +1,10 @@
 const EngineChunkQuadWriter = require("./EngineChunkQuadWriter")
+const EngineChunkRenderer = require("./EngineChunkRenderer")
 const geometrics = require("geometrics")
 
 class EngineChunkMesh {
 	constructor(vao, vertexArray, initialWriteCount = 0) {
-		this.vao = vao
+		this.vao = vao !== undefined ? vao : EngineChunkRenderer.acquireVAO()
 		this.vertexArray = vertexArray
 		this.initialWriteCount = initialWriteCount
 		this.writeList = []
@@ -40,20 +41,11 @@ class EngineChunkMesh {
 			var quadPushCount = maxQuadIndex - minQuadIndex + 1
 			renderBudget -= Math.max(quadPushCount, 200) // increase the budget cost of small updates, since 1x1000 bufferSubData calls probably costs way more than 1000x1
 
-			//const subarray = this.vertexArray.subarray(minQuadIndex * geometrics.quadVertexByteSize, (maxQuadIndex + 1) * geometrics.quadVertexByteSize)
-			//gl.bufferSubData(gl.ARRAY_BUFFER, minQuadIndex * geometrics.quadVertexByteSize, subarray)
-			console.log([ // DEBUG
-				window.chunkName,
-				minQuadIndex * geometrics.quadVertexByteSize, // dst byte offset
-				this.vertexArray,
-				minQuadIndex * geometrics.quadVertexByteSize, // srcOffset
-				quadPushCount * geometrics.quadVertexByteSize // length
-			])
 			gl.bufferSubData(gl.ARRAY_BUFFER,
-				minQuadIndex * geometrics.quadVertexByteSize, // dst byte offset
+				minQuadIndex * geometrics.quadVertexByteSize, // dstByteOffset
 				this.vertexArray,
-				minQuadIndex * geometrics.quadVertexByteSize, // srcOffset
-				quadPushCount * geometrics.quadVertexByteSize // length
+				minQuadIndex * geometrics.quadVertexByteSize / 4, // srcOffset (elements, not bytes!)
+				quadPushCount * geometrics.quadVertexByteSize // length (bytes)
 			)
 		}
 		return renderBudget

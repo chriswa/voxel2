@@ -9,6 +9,49 @@ function blockDataIsTransparent(blockData) {
 	return blockData === 0
 }
 
+
+const edgeOccludingBlockPos = new BlockPos(true, new v3(0, 0, 0))	 // optimization: keep these around for repeated calls to calculateVertexColours
+const cornerOccludingBlockPos = new BlockPos(true, new v3(0, 0, 0))	 // optimization: keep these around for repeated calls to calculateVertexColours
+
+function calculateVertexColours(airBlockPos, side) {
+
+	// determine ambient occlusion
+	const brightnesses = [0, 0, 0, 0]
+
+	// check for occlusion at right angles to the block's normal
+	for (let tangentIndex = 0; tangentIndex < 4; tangentIndex += 1) {
+		const tangentSide = side.tangents[tangentIndex].side
+
+		edgeOccludingBlockPos.setAdjacentToBlockPos(airBlockPos, tangentSide)
+		if (!edgeOccludingBlockPos.chunk) { continue }
+
+		if (!edgeOccludingBlockPos.isTransparent()) {
+			brightnesses[tangentIndex] += 2
+			brightnesses[(tangentIndex + 1) % 4] += 2
+		}
+
+		// right angle again to find the diagonal
+		// n.b. anisotropy warning: it's possible that the edge occluding block is unloaded, but the diagonal is loaded, and we are only turning right!
+		const diagonalTangentSide = side.tangents[(tangentIndex + 1) % 4].side
+
+		cornerOccludingBlockPos.setAdjacentToBlockPos(edgeOccludingBlockPos, diagonalTangentSide)
+		if (!cornerOccludingBlockPos.chunk) { continue }
+
+		if (!cornerOccludingBlockPos.isTransparent()) {
+			brightnesses[(tangentIndex + 1) % 4] += 1
+		}
+	}
+
+	const occludedBrightnesses = [1, 0.7, 0.7, 0.6, 0.5, 0.5]
+	for (let i = 0; i < 4; i += 1) {
+		brightnesses[i] = occludedBrightnesses[brightnesses[i]]
+	}
+
+	return brightnesses
+}
+
+
+
 class ChunkPrewriter {
 	constructor(blockData, quadIdsByBlockAndSide, vertexArrayPool) {
 		this.blockData = blockData
@@ -17,8 +60,6 @@ class ChunkPrewriter {
 		this.vertexArrays = []
 		this.currentVertexArray = undefined
 		this.vertexArrayPool = vertexArrayPool
-		this._edgeOccludingBlockPos = new BlockPos(true, new v3(0, 0, 0))	 // optimization: keep these around for repeated calls to calculateVertexColours
-		this._cornerOccludingBlockPos = new BlockPos(true, new v3(0, 0, 0))	 // optimization: keep these around for repeated calls to calculateVertexColours
 	}
 	addVertexArray() {
 		var vertexArray = new Float32Array(this.vertexArrayPool.acquire())
@@ -36,17 +77,19 @@ class ChunkPrewriter {
 	}
 
 
-	isTransparent(blockPos) {
-		return blockDataIsTransparent(this.blockData[blockPos.i])
-	}
-
 	drawInternalChunkQuads() {
-		var solidBlockPos = new BlockPos(true, new v3(0, 0, 0))
-		var airBlockPos = new BlockPos(true, new v3(0, 0, 0))
+		// TODO: this sucks
+		const fakeChunk = {
+			chunkData: {
+				blocks: this.blockData
+			}
+		}
+		var solidBlockPos = new BlockPos(fakeChunk, new v3(0, 0, 0))
+		var airBlockPos = new BlockPos(fakeChunk, new v3(0, 0, 0))
 
 		solidBlockPos.eachBlockInChunk(() => {
 			
-			if (!this.isTransparent(solidBlockPos)) {
+			if (!solidBlockPos.isTransparent()) {
 
 				geometrics.Sides.each(side => {
 
@@ -54,7 +97,7 @@ class ChunkPrewriter {
 
 					if (airBlockPos.chunk) {
 
-						var adjacentIsTransparent = this.isTransparent(airBlockPos)
+						var adjacentIsTransparent = airBlockPos.isTransparent()
 						if (adjacentIsTransparent) {
 
 							var blockType = BlockTypes.byId[this.blockData[solidBlockPos.i]]
@@ -62,7 +105,7 @@ class ChunkPrewriter {
 							var rgb = blockType.colourSides[side.id]
 
 							// determine vertex colours (AO)
-							var brightnesses = this.calculateVertexColours(airBlockPos, side)
+							var brightnesses = calculateVertexColours(airBlockPos, side)
 
 							this.addQuad(solidBlockPos, side, uvs, brightnesses, rgb)
 						}
@@ -74,42 +117,6 @@ class ChunkPrewriter {
 		})
 	}
 
-	calculateVertexColours(airBlockPos, side) {
-
-		// determine ambient occlusion
-		const brightnesses = [0, 0, 0, 0]
-
-		// check for occlusion at right angles to the block's normal
-		for (let tangentIndex = 0; tangentIndex < 4; tangentIndex += 1) {
-			const tangentSide = side.tangents[tangentIndex].side
-
-			this._edgeOccludingBlockPos.setAdjacentToBlockPos(airBlockPos, tangentSide)
-			if (!this._edgeOccludingBlockPos.chunk) { continue }
-
-			if (!this.isTransparent(this._edgeOccludingBlockPos)) {
-				brightnesses[tangentIndex] += 2
-				brightnesses[(tangentIndex + 1) % 4] += 2
-			}
-
-			// right angle again to find the diagonal
-			// n.b. anisotropy warning: it's possible that the edge occluding block is unloaded, but the diagonal is loaded, and we are only turning right!
-			const diagonalTangentSide = side.tangents[(tangentIndex + 1) % 4].side
-
-			this._cornerOccludingBlockPos.setAdjacentToBlockPos(this._edgeOccludingBlockPos, diagonalTangentSide)
-			if (!this._cornerOccludingBlockPos.chunk) { continue }
-
-			if (!this.isTransparent(this._cornerOccludingBlockPos)) {
-				brightnesses[(tangentIndex + 1) % 4] += 1
-			}
-		}
-
-		const occludedBrightnesses = [1, 0.7, 0.7, 0.6, 0.5, 0.5]
-		for (let i = 0; i < 4; i += 1) {
-			brightnesses[i] = occludedBrightnesses[brightnesses[i]]
-		}
-
-		return brightnesses
-	}
 }
 
 const EngineChunkBuilder = {
@@ -165,8 +172,7 @@ const EngineChunkBuilder = {
 			const blockTypeId = solidBlockPos.getBlockData()
 			const blockType = BlockTypes.byId[blockTypeId]
 			const uvs = blockType.textureSides[side.id]
-			const brightnesses = [0.1, 0.1, 0.1, 0.1] // this.calculateVertexColours(airBlockPos, side)
-			console.log(`stitch of ${newCenterChunk.chunkData.pos.toString()} addQuad to ${solidBlockPos.toString()}`)
+			const brightnesses = calculateVertexColours(airBlockPos, side)
 			solidBlockPos.chunk.addQuad(solidBlockPos, side, uvs, brightnesses)
 		}
 		
@@ -193,7 +199,9 @@ const EngineChunkBuilder = {
 						}
 						else if (!farIsTransparent && nearIsTransparent) {
 							// add quad at farBlockPos facing side1.opposite
-							addFace(farBlockPos, nearBlockPos, side1.opposite)
+							//console.log(`add quad at farBlockPos facing side1.opposite: ${farBlockPos.toString()}`)
+							//debugger///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+							addFace(farBlockPos, nearBlockPos, side1.opposite) // problem?
 						}
 
 						// update AO

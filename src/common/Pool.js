@@ -1,6 +1,7 @@
 module.exports = class Pool {
-	constructor(createCallback) {
+	constructor(createCallback, releaseCallback) {
 		this.createCallback = createCallback
+		this.releaseCallback = releaseCallback
 		this.items = []
 	}
 	acquire() {
@@ -9,7 +10,10 @@ module.exports = class Pool {
 		}
 		return this.createCallback()
 	}
-	release(obj) {
-		this.items.push(obj)
+	release(item) {
+		if (this.releaseCallback) {
+			this.releaseCallback(item)
+		}
+		this.items.push(item)
 	}
 }

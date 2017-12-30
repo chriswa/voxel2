@@ -1,7 +1,6 @@
 const geometrics = require("geometrics")
 //const ChunkData = require("../ChunkData")
 const EngineChunkVertexArrayPool = require("./EngineChunkVertexArrayPool")
-const EngineChunkRenderer = require("./EngineChunkRenderer")
 const EngineChunkMesh = require("./EngineChunkMesh")
 
 /**
@@ -18,11 +17,12 @@ class EngineChunk {
 	 */
 	constructor(chunkData, quadCount, initialVertexArrays, quadIdsByBlockAndSide) {
 		this.chunkData = chunkData
+		//console.log(`new EngineChunk ${this.id}`)
 		this.quadCount = quadCount
 		this.meshes = []
 		initialVertexArrays.forEach((initialVertexArray, i) => {
 			const initialWriteCount = Math.min(geometrics.maxQuadsPerMesh, quadCount - (i * geometrics.maxQuadsPerMesh))
-			this.meshes.push(new EngineChunkMesh(EngineChunkRenderer.acquireVAO(), initialVertexArray, initialWriteCount))
+			this.meshes.push(new EngineChunkMesh(undefined, initialVertexArray, initialWriteCount))
 		})
 		this.quadIdsByBlockAndSide = quadIdsByBlockAndSide
 
@@ -32,13 +32,18 @@ class EngineChunk {
 		this.quadHoleList = [] // quads which may be reused, but have already been zero'd out (dirty quads that did not get used)
 	}
 	addNewMesh() {
-		this.meshes.push(new EngineChunkMesh(EngineChunkRenderer.acquireVAO(), new Float32Array(EngineChunkVertexArrayPool.acquire()), 0))
+		const newVertexArray = new Float32Array(EngineChunkVertexArrayPool.acquire())
+		this.meshes.push(new EngineChunkMesh(undefined, newVertexArray, 0))
 	}
 	destroy() {
+		//console.log(`EngineChunk.destroy ${this.id}`)
 		this.meshes.forEach(mesh => {
 			EngineChunkVertexArrayPool.release(mesh.vertexArray)
 			mesh.vao.destroy()
 		})
+	}
+	get id() {
+		return this.chunkData.pos.toString()
 	}
 
 	attachNeighbour(side, neighbourChunk) {
@@ -83,6 +88,7 @@ class EngineChunk {
 	removeQuad(blockPos, side) {
 		const quadId = this.quadIdsByBlockAndSide[blockPos.i * 6 + side.id] - 1
 		if (quadId > -1) {
+			//console.log(`chunk ${this.id} removeQuad ${quadId}`)
 			this.quadIdsByBlockAndSide[blockPos.i * 6 + side.id] = 0
 			this.quadDirtyList.push(quadId) // leave it in the vertexArray for now, in case another quad needs to be drawn this frame!
 		}

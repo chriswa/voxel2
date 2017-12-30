@@ -34,6 +34,9 @@ class v3 {
 	toString() {
 		return this.a.join(",")
 	}
+	get id() {
+		return this.a.join(",")
+	}
 
 	// operations involving no arguments
 	lengthSqr() {
