@@ -1,6 +1,6 @@
 const EPSILON = 0.000001
 
-class v3 {
+export default class v3 {
 	constructor(x = 0, y = 0, z = 0) {
 		this.a = new Float32Array([ x, y, z ])
 	}
@@ -146,5 +146,3 @@ class v3 {
 			Math.abs(az - bz) <= EPSILON * Math.max(1.0, Math.abs(az), Math.abs(bz)))
 	}
 }
-
-module.exports = v3

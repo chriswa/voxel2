@@ -1,6 +1,6 @@
-const geometrics = require("geometrics")
-const v3 = require("v3")
-const BlockTypes = require("./BlockTypes")
+import * as  geometrics from "geometrics"
+import v3 from "v3"
+import BlockTypes from "./BlockTypes"
 
 /**
  * @interface ChunkLike
@@ -15,7 +15,7 @@ const BlockTypes = require("./BlockTypes")
  * @returns {Array<number>}
  */
 
-class BlockPos {
+export default class BlockPos {
 	/**
 	 * @constructor
 	 * @param {ChunkLike} chunk
@@ -211,5 +211,3 @@ class BlockPos {
 		return `BlockPos(${this.pos.toString()} @ ${this.chunk.chunkData.pos.toString()})`
 	}
 }
-
-module.exports = BlockPos

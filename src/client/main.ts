@@ -1,7 +1,6 @@
-global.gl = document.getElementById("mainCanvas").getContext("webgl2")
+import LocalAuthority from "./LocalAuthority"
 
-const LocalAuthority = require("./LocalAuthority")
-
+// support browser gl debugging tool "Spector" capturing from very start of script execution
 // http://www.realtimerendering.com/blog/debugging-webgl-with-spectorjs/
 if (global.spector) {
 	//spector.captureNextFrame(gl)
@@ -14,6 +13,7 @@ if (global.spector) {
 // TODO: fsm with menu... but for now, just start a local game
 const authority = new LocalAuthority()
 
+// main loop
 function onFrame(time) {
 	authority.onFrame(time)
 	requestAnimationFrame(onFrame)

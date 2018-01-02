@@ -1,4 +1,5 @@
-const geometrics = require("geometrics")
+import * as  geometrics from "geometrics"
+
 const Sides = geometrics.Sides
 
 class BlockType {
@@ -35,6 +36,7 @@ const BlockTypes = {
 	byId: [],
 	byName: {},
 }
+export default BlockTypes
 
 function addBlockType(name, tileIndex) {
 	var id = BlockTypes.byId.length
@@ -70,5 +72,3 @@ addBlockType("fungus", 77).setSideTile(Sides.TOP, 78).setSideTile(Sides.BOTTOM, 
 addBlockType("mossy_stone_brick", 100)
 addBlockType("cracked_stone_brick", 101)
 addBlockType("sandstone", 176).setSideTile(Sides.TOP, 192).setSideTile(Sides.BOTTOM, 192)
-
-module.exports = BlockTypes

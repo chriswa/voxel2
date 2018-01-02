@@ -1,6 +1,6 @@
-const { CHUNK_SIZE_CUBED } = require("geometrics")
-const Pool = require("Pool")
-const v3 = require("v3")
+import { CHUNK_SIZE_CUBED } from "geometrics"
+import Pool from "Pool"
+import v3 from "v3"
 
 class ChunkData {
 	constructor() {
@@ -21,4 +21,4 @@ class ChunkData {
  */
 ChunkData.pool = new Pool(() => new ChunkData())
 
-module.exports = ChunkData
+export default ChunkData

@@ -1,6 +1,6 @@
-const geometrics = require("geometrics")
+import * as  geometrics from "geometrics"
 
-module.exports = {
+export default {
 	drawQuad(vertexArray, quadId, blockPos, side, uvs, brightnesses) {
 		var vertexOrder = [0, 1, 2, 3] // or [ 1, 2, 3, 0 ], depending on AO ( this was getVertexOrderAfterQuadFlipping(brightnesses) )
 		var cursor = quadId * geometrics.quadVertexByteSize

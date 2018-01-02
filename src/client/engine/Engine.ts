@@ -1,14 +1,13 @@
-//const twgl = require("twgl.js")
-const geometrics = require("geometrics")
-const EngineChunk = require("./chunk/EngineChunk")
-const EngineChunkRenderer = require("./chunk/EngineChunkRenderer")
-const EngineChunkBuilder = require("./chunk/EngineChunkBuilder")
-const Pool = require("Pool")
-const v3 = require("v3")
-const twgl = require("twgl.js")
-const m4 = twgl.m4
-const PlayerInput = require("./PlayerInput")
+import * as  geometrics from "geometrics"
+import EngineChunk from "./chunk/EngineChunk"
+import EngineChunkRenderer from "./chunk/EngineChunkRenderer"
+import EngineChunkBuilder from "./chunk/EngineChunkBuilder"
+import Pool from "Pool"
+import v3 from "v3"
+import twgl from "twgl.js"
+import PlayerInput from "./PlayerInput"
 
+const m4 = twgl.m4
 
 const quadIdsByBlockAndSidePool = new Pool(
 	() => new Uint16Array(geometrics.CHUNK_SIZE_CUBED * geometrics.facesPerCube),
@@ -20,7 +19,7 @@ const fov = 60 * Math.PI / 180
 const zNear = 0.05
 const zFar = 5000
 
-module.exports = class Engine {
+export default class Engine {
 	constructor(authority) {
 		this.authority = authority
 		this.started = false

@@ -1,12 +1,14 @@
 // find the last entry in voxelSphereAreaByDistance for while the first element is <= your distance, the second element tells you how many sortedVoxelDistances elements to look at
 
-module.exports.getSortedList = (radius) => {
-	let voxelCount = 1
-	for (let i = 0; i < voxelSphereAreaByDistance.length; i += 1) {
-		if (voxelSphereAreaByDistance[i][0] > radius) { break }
-		voxelCount = voxelSphereAreaByDistance[i][1]
+export default {
+	getSortedList(radius) {
+		let voxelCount = 1
+		for (let i = 0; i < voxelSphereAreaByDistance.length; i += 1) {
+			if (voxelSphereAreaByDistance[i][0] > radius) { break }
+			voxelCount = voxelSphereAreaByDistance[i][1]
+		}
+		return sortedVoxelDistances.slice(0, voxelCount)
 	}
-	return sortedVoxelDistances.slice(0, voxelCount)
 }
 
 const voxelSphereAreaByDistance = [[1, 7], [1.414, 19], [1.732, 27], [2, 33], [2.236, 57], [2.449, 81], [2.828, 93], [3, 123], [3.162, 147], [3.317, 171], [3.464, 179], [3.606, 203], [3.742, 251], [4, 257], [4.123, 305], [4.243, 341], [4.359, 365], [4.472, 389], [4.583, 437], [4.69, 461], [4.899, 485], [5, 515], [5.099, 587], [5.196, 619], [5.385, 691], [5.477, 739], [5.657, 751], [5.745, 799], [5.831, 847], [5.916, 895], [6, 925], [6.083, 949], [6.164, 1021], [6.325, 1045], [6.403, 1141], [6.481, 1189], [6.557, 1213], [6.633, 1237], [6.708, 1309], [6.782, 1357], [6.928, 1365], [7, 1419], [7.071, 1503], [7.141, 1551], [7.211, 1575], [7.28, 1647], [7.348, 1743], [7.483, 1791], [7.55, 1839], [7.616, 1863], [7.681, 1935], [7.81, 2007], [7.874, 2103], [8, 2109], [8.062, 2205], [8.124, 2301], [8.185, 2325], [8.246, 2373], [8.307, 2469], [8.367, 2517]]

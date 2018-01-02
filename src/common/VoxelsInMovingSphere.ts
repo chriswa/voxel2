@@ -1,7 +1,7 @@
-const v3 = require("v3")
-const VoxelsInSphere = require("./VoxelsInSphere")
+import v3 from "v3"
+import VoxelsInSphere from "./VoxelsInSphere"
 
-class VoxelsInMovingSphere {
+export default class VoxelsInMovingSphere {
 	constructor(radius) {
 		this.centerPos = new v3(NaN, NaN, NaN)
 		this.radius = radius
@@ -44,8 +44,6 @@ class VoxelsInMovingSphere {
 		}
 	}
 }
-
-module.exports = VoxelsInMovingSphere
 
 /*
 

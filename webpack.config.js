@@ -4,9 +4,10 @@ var HtmlWebpackPlugin = require("html-webpack-plugin")
 var UglifyJSPlugin = require("uglifyjs-webpack-plugin")
 
 const config = {
-	entry: "./src/client/main.js",
+	entry: "./src/client/main.ts",
 	resolve: {
 		modules: [ path.resolve(__dirname, "src/common"), "node_modules" ],
+		extensions: ['.ts', '.js'],
 	},
 	output: {
 		path: path.resolve(__dirname, "./dist"),
@@ -26,15 +27,20 @@ const config = {
 			{
 				test: /\.js$/,
 				loader: "babel-loader",
-				exclude: /node_modules\/lodash/ // html-webpack-plugin seems to be trying to minify lodash because it's in a script tag?!
+				exclude: /node_modules/
 			},
 			{
-				test: /\.(png|jpg|gif|svg)$/,
-				loader: "file-loader",
-				options: {
-					name: "[name].[ext]?[hash]"
-				}
-			}
+				test: /\.ts$/,
+				loader: "ts-loader",
+				exclude: /node_modules/
+			},
+			//{
+			//	test: /\.(png|jpg|gif|svg)$/,
+			//	loader: "file-loader",
+			//	options: {
+			//		name: "[name].[ext]?[hash]"
+			//	}
+			//}
 		]
 	},
 	plugins: [],

@@ -1,8 +1,8 @@
-const EngineChunkQuadWriter = require("./EngineChunkQuadWriter")
-const EngineChunkRenderer = require("./EngineChunkRenderer")
-const geometrics = require("geometrics")
+import EngineChunkQuadWriter from "./EngineChunkQuadWriter"
+import EngineChunkRenderer from "./EngineChunkRenderer"
+import * as geometrics from "geometrics"
 
-class EngineChunkMesh {
+export default class EngineChunkMesh {
 	constructor(vao, vertexArray, initialWriteCount = 0) {
 		this.vao = vao !== undefined ? vao : EngineChunkRenderer.acquireVAO()
 		this.vertexArray = vertexArray
@@ -56,5 +56,3 @@ class EngineChunkMesh {
 		return renderBudget
 	}
 }
-
-module.exports = EngineChunkMesh

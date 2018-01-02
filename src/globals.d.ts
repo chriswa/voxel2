@@ -1,3 +1,5 @@
+declare var global: any;
+
 interface WebGL2RenderingContext extends WebGLRenderingContext { }
 declare var gl: WebGL2RenderingContext;
 

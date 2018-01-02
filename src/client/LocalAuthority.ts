@@ -1,12 +1,12 @@
-const geometrics = require("geometrics")
-const Engine = require("./engine/Engine")
-const VoxelsInMovingSphere = require("VoxelsInMovingSphere")
-const LocalChunkGenerator = require("./LocalChunkGenerator")
-const v3 = require("v3")
+import * as  geometrics from "geometrics"
+import Engine from "./engine/Engine"
+import VoxelsInMovingSphere from "VoxelsInMovingSphere"
+import LocalChunkGenerator from "./LocalChunkGenerator"
+import v3 from "v3"
 
 const chunkLoadRadius = 3
 
-module.exports = class LocalAuthority {
+export default class LocalAuthority {
 	constructor() {
 		this.chunks = {}
 		this.chunkGenerator = new LocalChunkGenerator(chunkData => this.onChunkDataGenerated(chunkData))

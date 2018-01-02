@@ -22,7 +22,9 @@
     "js-combinatorics": "^0.5.2",
     "keycode": "^2.1.9",
     "lodash": "^4.17.4",
+    "ts-loader": "^3.2.0",
     "twgl.js": "^3.8.0",
+    "typescript": "^2.6.2",
     "uglifyjs-webpack-plugin": "^1.0.0-beta.3",
     "webpack": "^3.7.1",
     "webpack-dev-server": "^2.9.2"

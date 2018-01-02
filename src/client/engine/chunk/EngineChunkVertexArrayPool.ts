@@ -1,11 +1,11 @@
-const geometrics = require("geometrics")
-const Pool = require("Pool")
+import * as  geometrics from "geometrics"
+import Pool from "Pool"
 
 function createPool() {
 	return new Pool(() => new Float32Array(geometrics.maxQuadsPerMesh * geometrics.quadVertexByteSize).buffer)
 }
 
-module.exports = {
+export default {
 	mainPool: createPool(),
 	acquire() {
 		return this.mainPool.acquire()

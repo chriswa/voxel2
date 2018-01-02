@@ -1,13 +1,13 @@
-const geometrics = require("geometrics")
-//const ChunkData = require("../ChunkData")
-const EngineChunkVertexArrayPool = require("./EngineChunkVertexArrayPool")
-const EngineChunkMesh = require("./EngineChunkMesh")
+import * as  geometrics from "geometrics"
+//import ChunkData from "../ChunkData"
+import EngineChunkVertexArrayPool from "./EngineChunkVertexArrayPool"
+import EngineChunkMesh from "./EngineChunkMesh"
 
 /**
  * @callback acquireVAO
  * @returns {EngineChunkMeshVAO}
  */
-class EngineChunk {
+export default class EngineChunk {
 	/**
 	 * create a renderable chunk using pre-generated chunkData and pre-built vertex arrays
 	 * @param {ChunkData} chunkData
@@ -117,5 +117,3 @@ class EngineChunk {
 	}
 
 }
-
-module.exports = EngineChunk

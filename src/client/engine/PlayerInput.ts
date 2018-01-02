@@ -1,4 +1,4 @@
-const keycode = require("keycode")
+import keycode from "keycode"
 
 const keynames = {
 	[keycode('up')] : "up",
@@ -13,7 +13,7 @@ const keynames = {
 	[keycode('space')] : "space",
 }
 
-module.exports = class {
+export default class PlayerInput {
 	constructor(engine) {
 		this.engine = engine
 		this.domElement = gl.canvas

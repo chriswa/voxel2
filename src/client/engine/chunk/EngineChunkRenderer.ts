@@ -1,6 +1,7 @@
-const geometrics = require("geometrics")
-const twgl = require("twgl.js")
-const Pool = require("Pool")
+import * as geometrics from "geometrics"
+import gl from "gl"
+import twgl from "twgl.js"
+import Pool from "Pool"
 
 const bytesPerFloat = 4
 const vertexByteStride = bytesPerFloat * (3 + 2 + 3) // 32 === 4 * ( position (3 floats) + texcoord (2 floats) + rgba8 (3 floats) )
@@ -64,7 +65,7 @@ class EngineChunkMeshVAO {
 		gl.bufferData(gl.ARRAY_BUFFER, geometrics.maxQuadsPerMesh * 4 * vertexByteStride, gl.DYNAMIC_DRAW)
 
 		const bufferInfo = {
-			numElements: geometrics.maxVertsPerMesh,
+			numElements: geometrics.maxVerts * geometrics.uniqVertsPerFace,
 			indices: this.renderer.indexBuffer,
 			elementType: indexBufferGlType,
 			attribs: {
@@ -88,7 +89,7 @@ class EngineChunkMeshVAO {
 	}
 }
 
-module.exports = new class EngineChunkRenderer {
+class EngineChunkRenderer {
 	constructor() {
 		this.texture = twgl.createTexture(gl, { src: "minecraft15.png", mag: gl.NEAREST, min: gl.NEAREST, level: 0, auto: false })
 		this.programInfo = twgl.createProgramInfo(gl, [vertexShaderSource, fragmentShaderSource], packedAttribOrder)
@@ -115,3 +116,5 @@ module.exports = new class EngineChunkRenderer {
 		twgl.setUniforms(this.programInfo, uniforms)
 	}
 }
+
+export default new EngineChunkRenderer()

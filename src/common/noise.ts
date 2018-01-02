@@ -1,4 +1,4 @@
-const v3 = require("./v3")
+import v3 from "./v3"
 
 /*
 	* A speed-improved perlin and simplex noise algorithms for 2D.
@@ -437,7 +437,7 @@ class CellNoise {
 }
 
 
-module.exports = {
+export default {
 	Noise3d,
 	NoiseWarp3d,
 	CellNoise,

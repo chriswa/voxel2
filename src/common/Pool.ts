@@ -1,4 +1,4 @@
-module.exports = class Pool {
+export default class Pool {
 	constructor(createCallback, releaseCallback) {
 		this.createCallback = createCallback
 		this.releaseCallback = releaseCallback

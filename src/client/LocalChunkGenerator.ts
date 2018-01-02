@@ -1,8 +1,8 @@
-const { CHUNK_SIZE } = require("geometrics")
-const ChunkData = require("./ChunkData")
-const BlockTypes = require("BlockTypes")
-const v3 = require("v3")
-const noise = require("noise")
+import { CHUNK_SIZE } from "geometrics"
+import ChunkData from "./ChunkData"
+import BlockTypes from "BlockTypes"
+import v3 from "v3"
+import noise from "noise"
 
 const fbm1 = new noise.Noise3d(250).setFractal(2, 0.5, 1.1)
 const fbm2 = new noise.Noise3d(80)
@@ -10,7 +10,7 @@ const fbm3 = new noise.Noise3d(250)
 const warp1 = new noise.NoiseWarp3d(1, fbm1)
 const cell1 = new noise.CellNoise(0.02)
 
-class LocalChunkGenerator {
+export default class LocalChunkGenerator {
 	constructor(onChunkDataGenerated) {
 		this.onChunkDataGenerated = onChunkDataGenerated
 		this.chunksToGenerate = {}
@@ -149,5 +149,3 @@ class LocalChunkGenerator {
 		return BlockTypes.byName.air.id
 	}
 }
-
-module.exports = LocalChunkGenerator

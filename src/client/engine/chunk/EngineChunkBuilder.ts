@@ -1,9 +1,9 @@
-const geometrics = require("geometrics")
-const BlockTypes = require("BlockTypes")
-const BlockPos = require("BlockPos")
-const EngineChunkQuadWriter = require("./EngineChunkQuadWriter")
-const EngineChunkVertexArrayPool = require("./EngineChunkVertexArrayPool")
-const v3 = require("v3")
+import * as  geometrics from "geometrics"
+import BlockTypes from "BlockTypes"
+import BlockPos from "BlockPos"
+import EngineChunkQuadWriter from "./EngineChunkQuadWriter"
+import EngineChunkVertexArrayPool from "./EngineChunkVertexArrayPool"
+import v3 from "v3"
 
 function blockDataIsTransparent(blockData) {
 	return blockData === 0
@@ -119,7 +119,7 @@ class ChunkPrewriter {
 
 }
 
-const EngineChunkBuilder = {
+export default {
 	/**
 	 * 
 	 * @param {Uint8Array} blockData
@@ -252,5 +252,3 @@ const EngineChunkBuilder = {
 	},
 
 }
-
-module.exports = EngineChunkBuilder
