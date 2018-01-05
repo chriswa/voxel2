@@ -3,7 +3,13 @@ import * as  geometrics from "geometrics"
 const Sides = geometrics.Sides
 
 class BlockType {
-	constructor(id, name, tileIndex) {
+
+	id: number
+	name: string
+	textureSides: Array<Array<number>>
+	colourSides: Array<Array<number>>
+
+	constructor(id: number, name: string, tileIndex: number) {
 		this.id = id
 		this.name = name
 		this.textureSides = []
@@ -13,15 +19,15 @@ class BlockType {
 			this.colourSides[side.id] = [ 1, 1, 1 ] // white
 		})
 	}
-	setSideColour(side, r, g, b) {
+	setSideColour(side: geometrics.SideType, r: number, g: number, b: number) {
 		this.colourSides[side.id] = [r, g, b]
 		return this
 	}
-	setSideTile(side, tileIndex) {
+	setSideTile(side: geometrics.SideType, tileIndex: number) {
 		this.textureSides[side.id] = this.makeTextureSide(tileIndex)
 		return this
 	}
-	makeTextureSide(tileIndex) {
+	makeTextureSide(tileIndex: number) {
 		var tu = tileIndex % 16
 		var tv = Math.floor(tileIndex / 16)
 		var u0 = tu / 16
@@ -32,13 +38,18 @@ class BlockType {
 	}
 }
 
-const BlockTypes = {
+interface BlockTypesType {
+	byId: Array<BlockType>,
+	byName: { [key: string]: BlockType },
+}
+
+const BlockTypes: BlockTypesType = {
 	byId: [],
 	byName: {},
 }
 export default BlockTypes
 
-function addBlockType(name, tileIndex) {
+function addBlockType(name: string, tileIndex: number) {
 	var id = BlockTypes.byId.length
 	var blockType = new BlockType(id, name, tileIndex)
 	BlockTypes.byId[id] = blockType
@@ -49,14 +60,14 @@ function addBlockType(name, tileIndex) {
 addBlockType("air", 0)
 addBlockType("stone", 1)
 addBlockType("dirt", 2)
-addBlockType("grass", 3).setSideTile(Sides.TOP, 0).setSideColour(Sides.TOP, 0.67, 1.0, 0.33).setSideTile(Sides.BOTTOM, 2)
+addBlockType("grass", 3).setSideTile(Sides.byName.TOP, 0).setSideColour(Sides.byName.TOP, 0.67, 1.0, 0.33).setSideTile(Sides.byName.BOTTOM, 2)
 addBlockType("planks", 4)
 addBlockType("brick", 7)
 addBlockType("cobble", 16)
 addBlockType("bedrock", 17)
 addBlockType("sand", 18)
 addBlockType("gravel", 19)
-addBlockType("wood", 20).setSideTile(Sides.TOP, 21).setSideTile(Sides.BOTTOM, 21)
+addBlockType("wood", 20).setSideTile(Sides.byName.TOP, 21).setSideTile(Sides.byName.BOTTOM, 21)
 addBlockType("gold_ore", 32)
 addBlockType("iron_ore", 33)
 addBlockType("coal_ore", 34)
@@ -67,8 +78,8 @@ addBlockType("redstone_ore", 51)
 addBlockType("stone_brick", 54)
 addBlockType("snow", 66)
 addBlockType("ice", 67)
-addBlockType("snowy_grass", 68).setSideTile(Sides.TOP, 66).setSideTile(Sides.BOTTOM, 2)
-addBlockType("fungus", 77).setSideTile(Sides.TOP, 78).setSideTile(Sides.BOTTOM, 2)
+addBlockType("snowy_grass", 68).setSideTile(Sides.byName.TOP, 66).setSideTile(Sides.byName.BOTTOM, 2)
+addBlockType("fungus", 77).setSideTile(Sides.byName.TOP, 78).setSideTile(Sides.byName.BOTTOM, 2)
 addBlockType("mossy_stone_brick", 100)
 addBlockType("cracked_stone_brick", 101)
-addBlockType("sandstone", 176).setSideTile(Sides.TOP, 192).setSideTile(Sides.BOTTOM, 192)
+addBlockType("sandstone", 176).setSideTile(Sides.byName.TOP, 192).setSideTile(Sides.byName.BOTTOM, 192)

@@ -1,23 +1,26 @@
 import EngineChunkQuadWriter from "./EngineChunkQuadWriter"
 import EngineChunkRenderer from "./EngineChunkRenderer"
 import * as geometrics from "geometrics"
+import v3 from "v3"
+import BlockPos from "BlockPos"
 
 export default class EngineChunkMesh {
-	constructor(vao, vertexArray, initialWriteCount = 0) {
+
+	writeList: Array<number>
+
+	constructor(public vao: EngineChunkRenderer.EngineChunkMeshVAO, public vertexArray: Float32Array, private initialWriteCount: number = 0) {
 		this.vao = vao !== undefined ? vao : EngineChunkRenderer.acquireVAO()
-		this.vertexArray = vertexArray
-		this.initialWriteCount = initialWriteCount
 		this.writeList = []
 	}
-	drawQuad(quadId, blockPos, side, uvs, brightnesses) {
+	drawQuad(quadId: number, blockPos: BlockPos, side: geometrics.SideType, uvs: Array<number>, brightnesses: Array<number>) {
 		EngineChunkQuadWriter.drawQuad(this.vertexArray, quadId, blockPos, side, uvs, brightnesses)
 		this.writeList.push(quadId)
 	}
-	clearQuad(quadId) {
+	clearQuad(quadId: number) {
 		EngineChunkQuadWriter.clearQuad(this.vertexArray, quadId)
 		this.writeList.push(quadId)
 	}
-	updateVAO(renderBudget) {
+	updateVAO(renderBudget: number) {
 		if (renderBudget > 0 && (this.writeList.length > 0 || this.initialWriteCount)) {
 
 			gl.bindBuffer(gl.ARRAY_BUFFER, this.vao.glBuffer)
@@ -50,7 +53,7 @@ export default class EngineChunkMesh {
 		}
 		return renderBudget
 	}
-	render(renderBudget, quadCount) {
+	render(renderBudget: number, quadCount: number) {
 		renderBudget = this.updateVAO(renderBudget)
 		this.vao.partialRender(quadCount)
 		return renderBudget

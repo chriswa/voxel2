@@ -1,19 +1,17 @@
-import * as  geometrics from "geometrics"
+import * as geometrics from "geometrics"
 import BlockTypes from "BlockTypes"
 import BlockPos from "BlockPos"
 import EngineChunkQuadWriter from "./EngineChunkQuadWriter"
 import EngineChunkVertexArrayPool from "./EngineChunkVertexArrayPool"
 import v3 from "v3"
-
-function blockDataIsTransparent(blockData) {
-	return blockData === 0
-}
+import Pool from "Pool"
+import EngineChunk from "client/engine/chunk/EngineChunk";
 
 
 const edgeOccludingBlockPos = new BlockPos(true, new v3(0, 0, 0))	 // optimization: keep these around for repeated calls to calculateVertexColours
 const cornerOccludingBlockPos = new BlockPos(true, new v3(0, 0, 0))	 // optimization: keep these around for repeated calls to calculateVertexColours
 
-function calculateVertexColours(airBlockPos, side) {
+function calculateVertexColours(airBlockPos: BlockPos, side: geometrics.SideType) {
 
 	// determine ambient occlusion
 	const brightnesses = [0, 0, 0, 0]
@@ -53,20 +51,22 @@ function calculateVertexColours(airBlockPos, side) {
 
 
 class ChunkPrewriter {
-	constructor(blockData, quadIdsByBlockAndSide, vertexArrayPool) {
-		this.blockData = blockData
-		this.quadIdsByBlockAndSide = quadIdsByBlockAndSide
+
+	quadCount: number
+	vertexArrays: Array<Float32Array>
+	currentVertexArray: Float32Array
+
+	constructor(private blockData: Uint8Array, private quadIdsByBlockAndSide: Uint16Array, private vertexArrayPool: Pool<Float32Array>) {
 		this.quadCount = 0
 		this.vertexArrays = []
 		this.currentVertexArray = undefined
-		this.vertexArrayPool = vertexArrayPool
 	}
 	addVertexArray() {
 		var vertexArray = new Float32Array(this.vertexArrayPool.acquire())
 		this.vertexArrays.push(vertexArray)
 		return vertexArray
 	}
-	addQuad(blockPos, side, uvs, brightnesses, rgb) {
+	addQuad(blockPos: BlockPos, side: geometrics.SideType, uvs: Array<number>, brightnesses: Array<number>, rgb: Array<number>) {
 		var quadId = this.quadCount
 		this.quadCount += 1
 		if (this.quadCount > this.vertexArrays.length * geometrics.maxQuadsPerMesh) {
@@ -120,13 +120,11 @@ class ChunkPrewriter {
 }
 
 export default {
-	/**
-	 * 
-	 * @param {Uint8Array} blockData
-	 * @param {Uint16Array} quadIdsByBlockAndSide - n.b. this is written to!
-	 * @returns {{ quadCount: {number}, vertexArrays: {Array.Float32Array} }}
-	 */
-	drawInternalChunkQuads(blockData, quadIdsByBlockAndSide, reusableVertexArrays = []) {
+	drawInternalChunkQuads(
+		blockData: Uint8Array, 
+		quadIdsByBlockAndSide: Uint16Array, 
+		reusableVertexArrays: Array<Float32Array> = []
+	): {quadCount: number, vertexArrays: Array<Float32Array>} {
 
 		const vertexArrayPool = EngineChunkVertexArrayPool.createPrefilledPool(reusableVertexArrays)
 
@@ -138,14 +136,14 @@ export default {
 		return { quadCount, vertexArrays }
 	},
 
-	unstitchChunk(chunk, side) {
+	unstitchChunk(chunk: EngineChunk, side: geometrics.SideType) {
 		const blockPos = new BlockPos()
 		blockPos.eachBlockOnFace(chunk, side, () => {
 			chunk.removeQuad(blockPos, side)
 		})
 	},
 
-	stitchChunks(newCenterChunk) {
+	stitchChunks(newCenterChunk: EngineChunk) {
 		// requirements:
 		//   - add quads on both sides of the 6 adjacent "face" neighbour chunks, if required (i.e. solid and air boundary)
 		//   - update AO on both sides of the 6 adjacent "face" neighbour chunks, for faces which are perpendicular
@@ -161,14 +159,14 @@ export default {
 		//   - finally, z fills in the last two spots
 		// as more chunks get filled in, these anisotropic AO errors should disappear; with the camera far away from the edges of the loading chunks, this should not affect the player
 
-		function fixAO(blockPos, side) {
+		function fixAO(blockPos: BlockPos, side: geometrics.SideType) {
 			const quadId = blockPos.getQuadId(side)
 			if (quadId > -1) {
 				// TODO: fix AO (if necessary)
 			}
 		}
 
-		function addFace(solidBlockPos, airBlockPos, side) {
+		function addFace(solidBlockPos: BlockPos, airBlockPos: BlockPos, side: geometrics.SideType) {
 			const blockTypeId = solidBlockPos.getBlockData()
 			const blockType = BlockTypes.byId[blockTypeId]
 			const uvs = blockType.textureSides[side.id]

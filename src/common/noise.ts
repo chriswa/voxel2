@@ -17,17 +17,17 @@ import v3 from "./v3"
 	*/
 
 const noise = (function () {
-	var module = {};
+	var module: any = {};
 
-	function Grad(x, y, z) {
+	function Grad(x: number, y: number, z: number) {
 		this.x = x; this.y = y; this.z = z;
 	}
 
-	Grad.prototype.dot2 = function (x, y) {
+	Grad.prototype.dot2 = function (x: number, y: number) {
 		return this.x * x + this.y * y;
 	};
 
-	Grad.prototype.dot3 = function (x, y, z) {
+	Grad.prototype.dot3 = function (x: number, y: number, z: number) {
 		return this.x * x + this.y * y + this.z * z;
 	};
 
@@ -315,14 +315,19 @@ const noise = (function () {
 let fbm_counter = 0
 
 class Noise3d {
-	constructor(scale, offset) {
-		this.scale = scale
+
+	workVector: v3
+	octaves: number
+	persistance: number
+	lacunarity: number
+
+	constructor(private scale: number, private offset?: v3) {
 		this.workVector = new v3()
-		this.offset = new v3()
 		if (offset) {
 			this.offset.setFrom(offset)
 		}
 		else {
+			this.offset = new v3()
 			this.randomizeOffset()
 		}
 		this.setFractal(1, 0.5, 2)

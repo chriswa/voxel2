@@ -1,21 +1,23 @@
 import * as  geometrics from "geometrics"
-//import ChunkData from "../ChunkData"
 import EngineChunkVertexArrayPool from "./EngineChunkVertexArrayPool"
 import EngineChunkMesh from "./EngineChunkMesh"
+import ChunkData from "client/ChunkData"
+import v3 from "v3"
+import BlockPos from "BlockPos";
 
-/**
- * @callback acquireVAO
- * @returns {EngineChunkMeshVAO}
- */
+
 export default class EngineChunk {
-	/**
-	 * create a renderable chunk using pre-generated chunkData and pre-built vertex arrays
-	 * @param {ChunkData} chunkData
-	 * @param {number} quadCount
-	 * @param {Array.<Float32Array>} initialVertexArrays
-	 * @param {UInt16Array} quadIdsByBlockAndSide
-	 */
-	constructor(chunkData, quadCount, initialVertexArrays, quadIdsByBlockAndSide) {
+
+	chunkData: ChunkData
+	quadCount: number
+	meshes: Array<EngineChunkMesh>
+	quadIdsByBlockAndSide: Uint16Array
+	worldPos: v3
+	neighboursBySideId: Array<EngineChunk>
+	quadDirtyList: Array<number>
+	quadHoleList: Array<number>
+
+	constructor(chunkData: ChunkData, quadCount: number, initialVertexArrays: Array<Float32Array>, quadIdsByBlockAndSide: Uint16Array) {
 		this.chunkData = chunkData
 		//console.log(`new EngineChunk ${this.id}`)
 		this.quadCount = quadCount
@@ -46,14 +48,14 @@ export default class EngineChunk {
 		return this.chunkData.pos.toString()
 	}
 
-	attachNeighbour(side, neighbourChunk) {
+	attachNeighbour(side: geometrics.SideType, neighbourChunk: EngineChunk) {
 		this.neighboursBySideId[side.id] = neighbourChunk
 	}
-	detatchNeighbour(side) {
+	detatchNeighbour(side: geometrics.SideType) {
 		this.neighboursBySideId[side.id] = undefined
 	}
 
-	addQuad(blockPos, side, uvs, brightnesses) {
+	addQuad(blockPos: BlockPos, side: geometrics.SideType, uvs: Array<number>, brightnesses: Array<number>) {
 		let quadId
 		// prefer to draw over dirty quads, which will need to be updated anyway
 		if (this.quadDirtyList.length) {
@@ -85,7 +87,7 @@ export default class EngineChunk {
 
 		return quadId
 	}
-	removeQuad(blockPos, side) {
+	removeQuad(blockPos: BlockPos, side: geometrics.SideType) {
 		const quadId = this.quadIdsByBlockAndSide[blockPos.i * 6 + side.id] - 1
 		if (quadId > -1) {
 			//console.log(`chunk ${this.id} removeQuad ${quadId}`)
@@ -94,8 +96,7 @@ export default class EngineChunk {
 		}
 	}
 
-	render(renderBudget) {
-		window.chunkName = this.chunkData.pos.toString() // DEBUG
+	render(renderBudget: number) {
 		this.cleanupRemovedQuads()
 		this.meshes.forEach((mesh, meshId) => {
 			const quadCount = meshId === this.meshes.length - 1 ? this.quadCount % geometrics.maxQuadsPerMesh : geometrics.maxQuadsPerMesh

@@ -1,7 +1,8 @@
 import * as  geometrics from "geometrics"
+import BlockPos from "BlockPos";
 
 export default {
-	drawQuad(vertexArray, quadId, blockPos, side, uvs, brightnesses) {
+	drawQuad(vertexArray: Float32Array, quadId: number, blockPos: BlockPos, side: geometrics.SideType, uvs: Array<number>, brightnesses: Array<Number>) {
 		var vertexOrder = [0, 1, 2, 3] // or [ 1, 2, 3, 0 ], depending on AO ( this was getVertexOrderAfterQuadFlipping(brightnesses) )
 		var cursor = quadId * geometrics.quadVertexByteSize
 		for (var i = 0; i < 4; i += 1) {
@@ -16,7 +17,7 @@ export default {
 			vertexArray[cursor++] = 1 * brightnesses[vertexIndex]									// ... SUBTOTAL (without uvs): 6+6+6+2 = only 20 bits! (+32 for uvs, this is roughly 1/4 of the size!)
 		}
 	},
-	clearQuad(vertexArray, quadId) {
+	clearQuad(vertexArray: Float32Array, quadId: number) {
 		var cursor = quadId * geometrics.quadVertexByteSize
 		for (var i = 0; i < 4; i += 1) {
 			// make the triangles degenerate by setting their positions to the same point

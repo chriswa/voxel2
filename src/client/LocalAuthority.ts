@@ -1,12 +1,21 @@
-import * as  geometrics from "geometrics"
+import * as geometrics from "geometrics"
 import Engine from "./engine/Engine"
 import VoxelsInMovingSphere from "VoxelsInMovingSphere"
 import LocalChunkGenerator from "./LocalChunkGenerator"
 import v3 from "v3"
+import ChunkData from "./ChunkData"
 
 const chunkLoadRadius = 3
 
 export default class LocalAuthority {
+
+	chunks: { [key: string]: ChunkData }
+	chunkGenerator: LocalChunkGenerator
+	engine: Engine
+	playerPos: v3
+	playerRot: v3
+	voxelsInMovingSphere: VoxelsInMovingSphere
+
 	constructor() {
 		this.chunks = {}
 		this.chunkGenerator = new LocalChunkGenerator(chunkData => this.onChunkDataGenerated(chunkData))
@@ -24,12 +33,12 @@ export default class LocalAuthority {
 		this.voxelsInMovingSphere = new VoxelsInMovingSphere(chunkLoadRadius)
 		this.updatePlayerPos(this.playerPos, this.playerRot) // start chunks loading
 	}
-	onFrame(time) {
+	onFrame(time: number) {
 		this.chunkGenerator.work()
 		this.engine.authOnFrame(time)
 	}
 
-	updatePlayerPos(newPlayerPos, newPlayerRot) {
+	updatePlayerPos(newPlayerPos: v3, newPlayerRot: v3) {
 		
 		// TESTING: store current values for reloading the page and staying in the same place
 		window.localStorage.playerTransform = newPlayerPos.toString() + ',' + newPlayerRot.toString()
@@ -52,27 +61,27 @@ export default class LocalAuthority {
 			else       { this.chunkGenerator.cancelChunkGeneration(chunkPos) } // otherwise, cancel its queued generation
 		})
 	}
-	onChunkDataGenerated(chunkData) {
+	onChunkDataGenerated(chunkData: ChunkData) {
 		this.chunks[chunkData.id] = chunkData
 		this.engine.authAddChunkData(chunkData)
 		// TODO: if engine isn't started yet, and enough (some? all?) chunks have been loaded, start it with engine.authStart()
 	}
-	onChunkRemoved(chunkData) {
+	onChunkRemoved(chunkData: ChunkData) {
 		delete this.chunks[chunkData.id]
 		this.engine.authRemoveChunkData(chunkData)
 	}
 
 	// "engine" functions are called by Engine to provide user interaction information
 
-	engineUpdatePlayerPos(newPlayerPos, newPlayerRot) {
+	engineUpdatePlayerPos(newPlayerPos: v3, newPlayerRot: v3) {
 		this.updatePlayerPos(newPlayerPos, newPlayerRot)
 	}
-	enginePlaceBlockCreative(_blockType, _targetBlockPos, _targetBlockSide) { // e.g. for testing
-	}
-	engineDestroyBlockCreative(_targetBlockPos) { // e.g. for testing
-	}
-	engineUseItem(_itemInventorySlot, _buttonAndModifiers, _targetBlockPos, _targetBlockSide) { // e.g. place dirt block, open chest (right click with most items, including no-item)
-	}
-	engineBreakBlock(_blockPos, _percentBroken) { // should be called with 0 first, then finally 1 when the block is broken
-	}
+	//enginePlaceBlockCreative(_blockType, _targetBlockPos, _targetBlockSide) { // e.g. for testing
+	//}
+	//engineDestroyBlockCreative(_targetBlockPos) { // e.g. for testing
+	//}
+	//engineUseItem(_itemInventorySlot, _buttonAndModifiers, _targetBlockPos, _targetBlockSide) { // e.g. place dirt block, open chest (right click with most items, including no-item)
+	//}
+	//engineBreakBlock(_blockPos, _percentBroken) { // should be called with 0 first, then finally 1 when the block is broken
+	//}
 }

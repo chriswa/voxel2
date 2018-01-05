@@ -14,7 +14,7 @@ if (global.spector) {
 const authority = new LocalAuthority()
 
 // main loop
-function onFrame(time) {
+function onFrame(time: number) {
 	authority.onFrame(time)
 	requestAnimationFrame(onFrame)
 }

@@ -1,24 +1,24 @@
-import { CHUNK_SIZE_CUBED } from "geometrics"
+import * as geometrics from "geometrics"
 import Pool from "Pool"
 import v3 from "v3"
 
-class ChunkData {
+export default class ChunkData {
+
+	pos: v3
+	id: string
+	blocks: Uint8Array
+
 	constructor() {
 		this.pos = new v3()
 		this.id = "NaN,NaN,NaN"
-		this.blocks = new Uint8Array(CHUNK_SIZE_CUBED)
+		this.blocks = new Uint8Array(geometrics.CHUNK_SIZE_CUBED)
 	}
-	setChunkPos(chunkPos) {
+	setChunkPos(chunkPos: v3) {
 		this.pos.setFrom(chunkPos)
 		this.id = chunkPos.toString()
 	}
+
+	static pool: Pool<ChunkData> = new Pool(() => new ChunkData(), () => { })
 }
 
-/**
- * @static
- * @memberOf ChunkData
- * @returns {ChunkData}
- */
-ChunkData.pool = new Pool(() => new ChunkData())
-
-export default ChunkData
+//export const pool = new Pool(() => new ChunkData(), () => {})

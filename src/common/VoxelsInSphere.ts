@@ -1,7 +1,7 @@
 // find the last entry in voxelSphereAreaByDistance for while the first element is <= your distance, the second element tells you how many sortedVoxelDistances elements to look at
 
 export default {
-	getSortedList(radius) {
+	getSortedList(radius: number): Array< Array<number> > {
 		let voxelCount = 1
 		for (let i = 0; i < voxelSphereAreaByDistance.length; i += 1) {
 			if (voxelSphereAreaByDistance[i][0] > radius) { break }

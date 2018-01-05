@@ -1,4 +1,4 @@
-import keycode from "keycode"
+import * as keycode from "keycode"
 
 const keynames = {
 	[keycode('up')] : "up",
@@ -14,8 +14,16 @@ const keynames = {
 }
 
 export default class PlayerInput {
-	constructor(engine) {
-		this.engine = engine
+
+	domElement: HTMLElement
+	mouseSpeed: number
+	pointerLocked: boolean
+	heading: number
+	pitch: number
+	keysDown: { [key: string]: boolean }
+	keysPressed: { [key: string]: boolean }
+
+	constructor(private onClick: (event: MouseEvent) => void) {
 		this.domElement = gl.canvas
 		this.mouseSpeed = 0.002
 		this.pointerLocked = false
@@ -39,7 +47,7 @@ export default class PlayerInput {
 				this.domElement.requestPointerLock()
 			}
 			else {
-				this.engine.onPlayerInputClick(event)
+				this.onClick(event)
 			}
 		}, false)
 
@@ -59,7 +67,7 @@ export default class PlayerInput {
 			}
 		}, false)
 	}
-	onPointerLockChange(_event) {
+	onPointerLockChange(_event: Event) {
 		if (document.pointerLockElement === this.domElement || document.mozPointerLockElement === this.domElement || document.webkitPointerLockElement === this.domElement) {
 			this.pointerLocked = true
 		}

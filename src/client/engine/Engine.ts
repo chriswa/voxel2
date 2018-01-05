@@ -4,8 +4,10 @@ import EngineChunkRenderer from "./chunk/EngineChunkRenderer"
 import EngineChunkBuilder from "./chunk/EngineChunkBuilder"
 import Pool from "Pool"
 import v3 from "v3"
-import twgl from "twgl.js"
+import * as twgl from "twgl.js"
 import PlayerInput from "./PlayerInput"
+import LocalAuthority from "client/LocalAuthority";
+import ChunkData from "client/ChunkData";
 
 const m4 = twgl.m4
 
@@ -20,32 +22,40 @@ const zNear = 0.05
 const zFar = 5000
 
 export default class Engine {
-	constructor(authority) {
+
+	authority: LocalAuthority // TODO: AuthorityInterface
+	started: boolean
+	playerPos: v3
+	playerRot: v3
+	chunks: { [key: string]: EngineChunk }
+	playerInput: PlayerInput
+
+	constructor(authority: LocalAuthority) {
 		this.authority = authority
 		this.started = false
 		this.playerPos = new v3(0, 0, 0)
 		this.playerRot = new v3(0, 0, 0) // pitch, heading, _roll
 		this.chunks = {}
-		this.playerInput = new PlayerInput(this)
+		this.playerInput = new PlayerInput(event => { this.onPlayerInputClick(event) })
 
 		gl.enable(gl.DEPTH_TEST)
 		gl.enable(gl.CULL_FACE)
 	}
 
 	//
-	onPlayerInputClick(event) {
+	onPlayerInputClick(event: MouseEvent) {
 		console.log(event.button)
 	}
 
 
 	// "auth" methods are called by authority
-	authSetPlayerTransform(newPos, newRot) {
+	authSetPlayerTransform(newPos: v3, newRot: v3) {
 		this.playerPos.setFrom(newPos)
 		this.playerRot.setFrom(newRot)
 		this.playerInput.pitch = newRot.x
 		this.playerInput.heading = newRot.y
 	}
-	authAddChunkData(chunkData) {
+	authAddChunkData(chunkData: ChunkData) {
 		// TODO: pass chunkData to webworker, when it's finished, get back chunkData, 0+ vertex buffers, and quadCount
 		// ...but for now, just do what the webworker will do in this thread
 		const quadIdsByBlockAndSide = quadIdsByBlockAndSidePool.acquire()
@@ -62,13 +72,13 @@ export default class Engine {
 			const chunkTestId = neighbourChunkPos.toString()
 			const neighbourChunk = this.chunks[chunkTestId]
 			if (neighbourChunk) {
-				chunk.attachNeighbour(side, neighbourChunk, true)
-				neighbourChunk.attachNeighbour(side.opposite, chunk, false)
+				chunk.attachNeighbour(side, neighbourChunk)
+				neighbourChunk.attachNeighbour(side.opposite, chunk)
 			}
 		})
 		EngineChunkBuilder.stitchChunks(chunk)
 	}
-	authRemoveChunkData(chunkData) {
+	authRemoveChunkData(chunkData: ChunkData) {
 		const chunk = this.chunks[chunkData.id]
 		geometrics.Sides.each(side => {
 			const neighbourChunk = chunk.neighboursBySideId[side.id]
@@ -90,7 +100,7 @@ export default class Engine {
 	authStart() {
 		this.started = true
 	}
-	authOnFrame(_time) {
+	authOnFrame(_time: number) {
 		// TODO: if started, do player controls including gravity, and send current position to this.authority.simUpdatePlayerPos()
 		// TODO: also call any other this.authority.sim* methods depending on player input
 
@@ -133,7 +143,7 @@ export default class Engine {
 
 		this.render(playerRotationMatrix)
 	}
-	render(playerRotationMatrix) {
+	render(playerRotationMatrix: Array<number>) {
 		// handle resized browser window
 		twgl.resizeCanvasToDisplaySize(gl.canvas)
 		gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
@@ -144,7 +154,7 @@ export default class Engine {
 
 		this.renderChunks(playerRotationMatrix)
 	}
-	renderChunks(playerRotationMatrix) {
+	renderChunks(playerRotationMatrix: Array<number>) {
 		EngineChunkRenderer.initRenderProgram()
 
 		const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight

@@ -11,15 +11,17 @@ const warp1 = new noise.NoiseWarp3d(1, fbm1)
 const cell1 = new noise.CellNoise(0.02)
 
 export default class LocalChunkGenerator {
-	constructor(onChunkDataGenerated) {
-		this.onChunkDataGenerated = onChunkDataGenerated
+
+	chunksToGenerate: { [key: string]: v3 }
+
+	constructor(private onChunkDataGenerated: (chunkData: ChunkData) => {}) {
 		this.chunksToGenerate = {}
 	}
-	queueChunkGeneration(chunkPos) {
+	queueChunkGeneration(chunkPos: v3) {
 		const chunkId = chunkPos.toString()
 		this.chunksToGenerate[chunkId] = chunkPos
 	}
-	cancelChunkGeneration(chunkPos) {
+	cancelChunkGeneration(chunkPos: v3) {
 		const chunkId = chunkPos.toString()
 		delete this.chunksToGenerate[chunkId]
 	}
@@ -35,9 +37,8 @@ export default class LocalChunkGenerator {
 			this.generateChunk(chunkPos)
 		}
 	}
-	generateChunk(chunkPos) {
+	generateChunk(chunkPos: v3) {
 
-		/** @type {ChunkData} */
 		const chunkData = ChunkData.pool.acquire() // n.b. chunkData may contain old data, so make sure to set everything!
 		chunkData.setChunkPos(chunkPos)
 
@@ -113,7 +114,7 @@ export default class LocalChunkGenerator {
 
 		this.onChunkDataGenerated(chunkData)
 	}
-	terrainGen(pos, v_dist, v_closest) {
+	terrainGen(pos: v3, v_dist: number, v_closest: number) {
 		var workVector = new v3()
 		var biomeBlockTypes = [
 			BlockTypes.byName.stone.id,

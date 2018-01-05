@@ -1,6 +1,6 @@
 import * as geometrics from "geometrics"
 import gl from "gl"
-import twgl from "twgl.js"
+import * as twgl from "twgl.js"
 import Pool from "Pool"
 
 const bytesPerFloat = 4
@@ -41,7 +41,7 @@ const fragmentShaderSource = `#version 300 es
 	}`
 
 const indexBufferGlType = gl.UNSIGNED_SHORT
-function createIndexBuffer(gl) {
+function createIndexBuffer() {
 	const indexArray = new Uint16Array(geometrics.maxQuadsPerMesh * geometrics.indicesPerFace)
 	for (let quadIndex = 0, indexIndex = 0, vertIndex = 0; quadIndex < geometrics.maxQuadsPerMesh; quadIndex += 1, indexIndex += 6, vertIndex += 4) {
 		indexArray[indexIndex + 0] = vertIndex + 0
@@ -55,7 +55,12 @@ function createIndexBuffer(gl) {
 }
 
 class EngineChunkMeshVAO {
-	constructor(renderer) {
+
+	renderer: EngineChunkRenderer // TODO: refactor this away
+	glBuffer: WebGLBuffer
+	vaoInfo: any
+
+	constructor(renderer: EngineChunkRenderer) {
 		this.renderer = renderer
 
 		// this would be: twgl.createBufferFromTypedArray(gl, this.array, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW)
@@ -78,7 +83,7 @@ class EngineChunkMeshVAO {
 		// yes, all this stuff really does need to be set for every buffer (unless I use ARB_vertex_attrib_binding)
 		this.vaoInfo = twgl.createVertexArrayInfo(gl, [ this.renderer.programInfo ], bufferInfo)
 	}
-	partialRender(quadCount) {
+	partialRender(quadCount: number) {
 		// note: it's assumed that EngineChunkRenderer.preRender() has already been called!
 		twgl.setBuffersAndAttributes(gl, this.renderer.programInfo, this.vaoInfo)
 		// twgl.drawBufferInfo(gl, this.vaoInfo) ... but i want to set an upper limit
@@ -90,16 +95,22 @@ class EngineChunkMeshVAO {
 }
 
 class EngineChunkRenderer {
+
+	texture: WebGLTexture
+	programInfo: any
+	indexBuffer: WebGLBuffer
+	vaoPool: Pool<EngineChunkMeshVAO>
+
 	constructor() {
 		this.texture = twgl.createTexture(gl, { src: "minecraft15.png", mag: gl.NEAREST, min: gl.NEAREST, level: 0, auto: false })
 		this.programInfo = twgl.createProgramInfo(gl, [vertexShaderSource, fragmentShaderSource], packedAttribOrder)
-		this.indexBuffer = createIndexBuffer(gl)
+		this.indexBuffer = createIndexBuffer()
 		this.vaoPool = new Pool(() => new EngineChunkMeshVAO(this))
 	}
 	acquireVAO() {
 		return this.vaoPool.acquire()
 	}
-	releaseVAO(vao) {
+	releaseVAO(vao: EngineChunkMeshVAO) {
 		this.vaoPool.release(vao)
 	}
 	initRenderProgram() {
@@ -109,7 +120,7 @@ class EngineChunkRenderer {
 		}
 		twgl.setUniforms(this.programInfo, uniforms)
 	}
-	setWorldViewProjectionMatrix(worldViewProjectionMatrix) {
+	setWorldViewProjectionMatrix(worldViewProjectionMatrix: Array<number>) {
 		const uniforms = {
 			u_worldViewProjection: worldViewProjectionMatrix,
 		}
