@@ -1,39 +1,53 @@
-import * as  geometrics from "geometrics"
+import * as geometrics from "geometrics"
 import v3 from "v3"
 import BlockTypes from "./BlockTypes"
+import EngineChunk from "client/engine/chunk/EngineChunk"
 
-interface ChunkLike {
-	blockData: Uint8Array
-	neighbours: Array<ChunkLike>
-	alterOneBlock: (blockPos: BlockPos, val: number) => Array<number>
-}
+//interface ChunkLike {
+//	blockData: Uint8Array
+//	neighbours: Array<ChunkLike>
+//	alterOneBlock: (blockPos: BlockPos, val: number) => Array<number>
+//}
 
 export default class BlockPos {
 
-	chunk: ChunkLike
+	engineChunk: EngineChunk
 	pos: v3
+	blockDataOverride: Uint8Array
 	i: number
 
-	constructor(chunk?: ChunkLike, pos?: v3) {
-		this.chunk = chunk
+	constructor(engineChunk?: EngineChunk, pos?: v3, blockDataOverride?: Uint8Array) {
+		this.engineChunk = engineChunk
 		this.pos = pos ? pos.clone() : new v3()
+		this.blockDataOverride = blockDataOverride
 		this.recalculateIndex()
 	}
 	clone() {
-		return new BlockPos(this.chunk, this.pos)
+		return new BlockPos(this.engineChunk, this.pos)
 	}
 	recalculateIndex() {
 		this.i = geometrics.vectorToBlockIndex(this.pos)
 	}
+	get blockDataSource(): Uint8Array {
+		return this.engineChunk ? this.engineChunk.chunkData.blocks : this.blockDataOverride
+	}
 
 	getQuadId(side: geometrics.SideType) {
-		return (this.chunk ? this.chunk.quadIdsByBlockAndSide[this.i * 6 + side.id] - 1 : -1)
+		return (this.engineChunk ? this.engineChunk.quadIdsByBlockAndSide[this.i * 6 + side.id] - 1 : -1)
 	}
 	getWorldPoint(outV3: v3) {
-		outV3.setFrom(this.chunk.pos).multiplyScalar(geometrics.CHUNK_SIZE).add(this.pos)
+		outV3.setFrom(this.engineChunk.worldPos).multiplyScalar(geometrics.CHUNK_SIZE).add(this.pos)
 	}
 	getBlockData() {
-		return this.chunk ? this.chunk.chunkData.blocks[this.i] : 0
+		if (this.engineChunk) {
+			return this.engineChunk.chunkData.blocks[this.i]
+		}
+		else if (this.blockDataOverride) {
+			return this.blockDataOverride[this.i]
+		}
+		else {
+			return 0
+		}
 	}
 	getBlockType() {
 		return BlockTypes.byId[this.getBlockData()]
@@ -49,18 +63,22 @@ export default class BlockPos {
 	//}
 	setAdjacentToBlockPos(refBlockPos: BlockPos, side: geometrics.SideType) {
 		this.pos.setFrom(refBlockPos.pos)
-		this.chunk = refBlockPos.chunk
+		this.engineChunk = refBlockPos.engineChunk
+		this.blockDataOverride = refBlockPos.blockDataOverride
 		let newAxisPos = refBlockPos.pos.a[side.axis] + side.axisDelta
 		let newIndex = refBlockPos.i + side.deltaIndex
 		if (newAxisPos < 0 || newAxisPos >= geometrics.CHUNK_SIZE) {
-			if (this.chunk) {
-				if (this.chunk.neighboursBySideId) {
-					const neighbourChunk = this.chunk.neighboursBySideId[side.id]
-					this.chunk = neighbourChunk
+			if (this.engineChunk) {
+				if (this.engineChunk.neighboursBySideId) {
+					const neighbourChunk = this.engineChunk.neighboursBySideId[side.id]
+					this.engineChunk = neighbourChunk
 				}
 				else {
-					this.chunk = false
+					this.engineChunk = undefined
 				}
+			}
+			else {
+				this.blockDataOverride = undefined
 			}
 			newAxisPos += geometrics.CHUNK_SIZE * -side.axisDelta
 			newIndex += geometrics.CHUNK_SIZE * -side.deltaIndex
@@ -106,49 +124,49 @@ export default class BlockPos {
 		if (dy > 0) {
 			this.pos.a[1] += dy
 			while (this.pos.a[1] > geometrics.CHUNK_SIZE-1) {
-				this.chunk = this.chunk.neighboursBySideId[ geometrics.Sides.byName.TOP.id ]
+				this.engineChunk = this.engineChunk.neighboursBySideId[ geometrics.Sides.byName.TOP.id ]
 				this.pos.a[1] -= geometrics.CHUNK_SIZE
-				if (!this.chunk) { return }
+				if (!this.engineChunk) { return }
 			}
 		}
 		if (dy < 0) {
 			this.pos.a[1] += dy
 			while (this.pos.a[1] < 0) {
-				this.chunk = this.chunk.neighboursBySideId[ geometrics.Sides.byName.BOTTOM.id ]
+				this.engineChunk = this.engineChunk.neighboursBySideId[ geometrics.Sides.byName.BOTTOM.id ]
 				this.pos.a[1] += geometrics.CHUNK_SIZE
-				if (!this.chunk) { return }
+				if (!this.engineChunk) { return }
 			}
 		}
 		if (dz > 0) {
 			this.pos.a[2] += dz
 			while (this.pos.a[2] > geometrics.CHUNK_SIZE-1) {
-				this.chunk = this.chunk.neighboursBySideId[ geometrics.Sides.byName.NORTH.id ]
+				this.engineChunk = this.engineChunk.neighboursBySideId[ geometrics.Sides.byName.NORTH.id ]
 				this.pos.a[2] -= geometrics.CHUNK_SIZE
-				if (!this.chunk) { return }
+				if (!this.engineChunk) { return }
 			}
 		}
 		if (dz < 0) {
 			this.pos.a[2] += dz
 			while (this.pos.a[2] < 0) {
-				this.chunk = this.chunk.neighboursBySideId[ geometrics.Sides.byName.SOUTH.id ]
+				this.engineChunk = this.engineChunk.neighboursBySideId[ geometrics.Sides.byName.SOUTH.id ]
 				this.pos.a[2] += geometrics.CHUNK_SIZE
-				if (!this.chunk) { return }
+				if (!this.engineChunk) { return }
 			}
 		}
 		if (dx > 0) {
 			this.pos.a[0] += dx
 			while (this.pos.a[0] > geometrics.CHUNK_SIZE-1) {
-				this.chunk = this.chunk.neighboursBySideId[ geometrics.Sides.byName.EAST.id ]
+				this.engineChunk = this.engineChunk.neighboursBySideId[ geometrics.Sides.byName.EAST.id ]
 				this.pos.a[0] -= geometrics.CHUNK_SIZE
-				if (!this.chunk) { return }
+				if (!this.engineChunk) { return }
 			}
 		}
 		if (dx < 0) {
 			this.pos.a[0] += dx
 			while (this.pos.a[0] < 0) {
-				this.chunk = this.chunk.neighboursBySideId[ geometrics.Sides.byName.WEST.id ]
+				this.engineChunk = this.engineChunk.neighboursBySideId[ geometrics.Sides.byName.WEST.id ]
 				this.pos.a[0] += geometrics.CHUNK_SIZE
-				if (!this.chunk) { return }
+				if (!this.engineChunk) { return }
 			}
 		}
 		this.recalculateIndex()
@@ -167,8 +185,8 @@ export default class BlockPos {
 		}
 	}
 
-	eachBlockOnFace(chunk: ChunkLike, side: geometrics.SideType, callback: () => void) {
-		this.chunk = chunk
+	eachBlockOnFace(chunk: EngineChunk, side: geometrics.SideType, callback: () => void) {
+		this.engineChunk = chunk
 		const a = this.pos.a
 		const freeAxis1 = side.axis === 0 ? 1 : 0
 		const freeAxis2 = side.axis === 2 ? 1 : 2
@@ -180,8 +198,8 @@ export default class BlockPos {
 			}
 		}
 	}
-	eachBlockOnEdge(chunk: ChunkLike, side1: geometrics.SideType, side2: geometrics.SideType, callback: () => void) {
-		this.chunk = chunk
+	eachBlockOnEdge(chunk: EngineChunk, side1: geometrics.SideType, side2: geometrics.SideType, callback: () => void) {
+		this.engineChunk = chunk
 		const a = this.pos.a
 		const freeAxis = side1.axis !== 0 && side2.axis !== 0 ? 0 : side1.axis !== 1 && side2.axis !== 1 ? 1 : 2
 		a[side1.axis] = side1.axisDelta === 1 ? geometrics.CHUNK_SIZE - 1 : 0
@@ -191,8 +209,8 @@ export default class BlockPos {
 			callback()
 		}
 	}
-	setBlockOnCorner(chunk: ChunkLike, side1: geometrics.SideType, side2: geometrics.SideType, side3: geometrics.SideType) {
-		this.chunk = chunk
+	setBlockOnCorner(chunk: EngineChunk, side1: geometrics.SideType, side2: geometrics.SideType, side3: geometrics.SideType) {
+		this.engineChunk = chunk
 		const a = this.pos.a
 		a[side1.axis] = side1.axisDelta === 1 ? geometrics.CHUNK_SIZE - 1 : 0
 		a[side2.axis] = side2.axisDelta === 1 ? geometrics.CHUNK_SIZE - 1 : 0
@@ -201,6 +219,6 @@ export default class BlockPos {
 	}
 
 	toString() {
-		return `BlockPos(${this.pos.toString()} @ ${this.chunk.chunkData.pos.toString()})`
+		return `BlockPos(${this.pos.toString()} @ ${this.engineChunk ? this.engineChunk.chunkData.pos.toString() : "no-chunk"})`
 	}
 }

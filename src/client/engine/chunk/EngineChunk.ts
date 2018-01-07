@@ -1,4 +1,4 @@
-import * as  geometrics from "geometrics"
+import * as geometrics from "geometrics"
 import EngineChunkVertexArrayPool from "./EngineChunkVertexArrayPool"
 import EngineChunkMesh from "./EngineChunkMesh"
 import ChunkData from "client/ChunkData"

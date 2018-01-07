@@ -1,18 +1,19 @@
 import v3 from "v3"
 import VoxelsInSphere from "./VoxelsInSphere"
+import * as _ from "lodash"
 
 export default class VoxelsInMovingSphere {
 
 	centerPos: v3
 	radius: number
-	sortedVoxelList: Array< Array<number> >
+	sortedRelativePositions: Array< Array<number> >
 	loadedAbsolutePositions: { [key:string]: number }
 	newTag: number
 
 	constructor(radius: number) {
 		this.centerPos = new v3(NaN, NaN, NaN)
 		this.radius = radius
-		this.sortedVoxelList = VoxelsInSphere.getSortedList(radius)
+		this.sortedRelativePositions = VoxelsInSphere.getSortedList(radius)
 		this.loadedAbsolutePositions = {}
 		this.newTag = 1
 	}
@@ -23,7 +24,7 @@ export default class VoxelsInMovingSphere {
 		if (!this.centerPos.exactEquals(newCenterPos)) {
 			this.newTag = this.newTag === 1 ? 2 : 1 // toggle between 1 and 2
 			const cursorPos = new v3()
-			this.sortedVoxelList.forEach((deltaPos) => {
+			this.sortedRelativePositions.forEach((deltaPos) => {
 				cursorPos.set(deltaPos[0], deltaPos[1], deltaPos[2]).add(newCenterPos)
 				const cursorHash = cursorPos.toString()
 				// check if this position is new

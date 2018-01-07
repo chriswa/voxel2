@@ -1,8 +1,8 @@
-import * as  geometrics from "geometrics"
+import * as geometrics from "geometrics"
 import BlockPos from "BlockPos";
 
 export default {
-	drawQuad(vertexArray: Float32Array, quadId: number, blockPos: BlockPos, side: geometrics.SideType, uvs: Array<number>, brightnesses: Array<Number>) {
+	drawQuad(vertexArray: Float32Array, quadId: number, blockPos: BlockPos, side: geometrics.SideType, uvs: Array<number>, brightnesses: Array<number>) {
 		var vertexOrder = [0, 1, 2, 3] // or [ 1, 2, 3, 0 ], depending on AO ( this was getVertexOrderAfterQuadFlipping(brightnesses) )
 		var cursor = quadId * geometrics.quadVertexByteSize
 		for (var i = 0; i < 4; i += 1) {

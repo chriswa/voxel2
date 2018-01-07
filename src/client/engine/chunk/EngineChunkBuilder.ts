@@ -1,3 +1,4 @@
+import * as _ from "lodash"
 import * as geometrics from "geometrics"
 import BlockTypes from "BlockTypes"
 import BlockPos from "BlockPos"
@@ -8,8 +9,8 @@ import Pool from "Pool"
 import EngineChunk from "client/engine/chunk/EngineChunk";
 
 
-const edgeOccludingBlockPos = new BlockPos(true, new v3(0, 0, 0))	 // optimization: keep these around for repeated calls to calculateVertexColours
-const cornerOccludingBlockPos = new BlockPos(true, new v3(0, 0, 0))	 // optimization: keep these around for repeated calls to calculateVertexColours
+const edgeOccludingBlockPos = new BlockPos(undefined, new v3(0, 0, 0))	 // optimization: keep these around for repeated calls to calculateVertexColours
+const cornerOccludingBlockPos = new BlockPos(undefined, new v3(0, 0, 0))	 // optimization: keep these around for repeated calls to calculateVertexColours
 
 function calculateVertexColours(airBlockPos: BlockPos, side: geometrics.SideType) {
 
@@ -21,7 +22,7 @@ function calculateVertexColours(airBlockPos: BlockPos, side: geometrics.SideType
 		const tangentSide = side.tangents[tangentIndex].side
 
 		edgeOccludingBlockPos.setAdjacentToBlockPos(airBlockPos, tangentSide)
-		if (!edgeOccludingBlockPos.chunk) { continue }
+		if (!edgeOccludingBlockPos.blockDataSource) { continue }
 
 		if (!edgeOccludingBlockPos.isTransparent()) {
 			brightnesses[tangentIndex] += 2
@@ -33,7 +34,7 @@ function calculateVertexColours(airBlockPos: BlockPos, side: geometrics.SideType
 		const diagonalTangentSide = side.tangents[(tangentIndex + 1) % 4].side
 
 		cornerOccludingBlockPos.setAdjacentToBlockPos(edgeOccludingBlockPos, diagonalTangentSide)
-		if (!cornerOccludingBlockPos.chunk) { continue }
+		if (!cornerOccludingBlockPos.blockDataSource) { continue }
 
 		if (!cornerOccludingBlockPos.isTransparent()) {
 			brightnesses[(tangentIndex + 1) % 4] += 1
@@ -66,26 +67,20 @@ class ChunkPrewriter {
 		this.vertexArrays.push(vertexArray)
 		return vertexArray
 	}
-	addQuad(blockPos: BlockPos, side: geometrics.SideType, uvs: Array<number>, brightnesses: Array<number>, rgb: Array<number>) {
+	addQuad(blockPos: BlockPos, side: geometrics.SideType, uvs: Array<number>, brightnesses: Array<number>) {
 		var quadId = this.quadCount
 		this.quadCount += 1
 		if (this.quadCount > this.vertexArrays.length * geometrics.maxQuadsPerMesh) {
 			this.currentVertexArray = this.addVertexArray()
 		}
-		EngineChunkQuadWriter.drawQuad(this.currentVertexArray, quadId % geometrics.maxQuadsPerMesh, blockPos, side, uvs, brightnesses, rgb)
+		EngineChunkQuadWriter.drawQuad(this.currentVertexArray, quadId % geometrics.maxQuadsPerMesh, blockPos, side, uvs, brightnesses)
 		this.quadIdsByBlockAndSide[blockPos.i * 6 + side.id] = quadId + 1 // add one so we can use 0 as an indicator that no quad was written
 	}
 
 
 	drawInternalChunkQuads() {
-		// TODO: this sucks
-		const fakeChunk = {
-			chunkData: {
-				blocks: this.blockData
-			}
-		}
-		var solidBlockPos = new BlockPos(fakeChunk, new v3(0, 0, 0))
-		var airBlockPos = new BlockPos(fakeChunk, new v3(0, 0, 0))
+		var solidBlockPos = new BlockPos(undefined, new v3(0, 0, 0), this.blockData)
+		var airBlockPos = new BlockPos(undefined, new v3(0, 0, 0), this.blockData)
 
 		solidBlockPos.eachBlockInChunk(() => {
 			
@@ -95,19 +90,18 @@ class ChunkPrewriter {
 
 					airBlockPos.setAdjacentToBlockPos(solidBlockPos, side)
 
-					if (airBlockPos.chunk) {
+					if (airBlockPos.blockDataSource) { // still within the same chunk
 
 						var adjacentIsTransparent = airBlockPos.isTransparent()
 						if (adjacentIsTransparent) {
 
 							var blockType = BlockTypes.byId[this.blockData[solidBlockPos.i]]
 							var uvs = blockType.textureSides[side.id]
-							var rgb = blockType.colourSides[side.id]
 
 							// determine vertex colours (AO)
 							var brightnesses = calculateVertexColours(airBlockPos, side)
 
-							this.addQuad(solidBlockPos, side, uvs, brightnesses, rgb)
+							this.addQuad(solidBlockPos, side, uvs, brightnesses)
 						}
 
 					}
@@ -171,7 +165,7 @@ export default {
 			const blockType = BlockTypes.byId[blockTypeId]
 			const uvs = blockType.textureSides[side.id]
 			const brightnesses = calculateVertexColours(airBlockPos, side)
-			solidBlockPos.chunk.addQuad(solidBlockPos, side, uvs, brightnesses)
+			solidBlockPos.engineChunk.addQuad(solidBlockPos, side, uvs, brightnesses)
 		}
 		
 		const nearBlockPos = new BlockPos()

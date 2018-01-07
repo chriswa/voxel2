@@ -1,4 +1,4 @@
-import * as  geometrics from "geometrics"
+import * as geometrics from "geometrics"
 
 const Sides = geometrics.Sides
 
@@ -7,21 +7,14 @@ class BlockType {
 	id: number
 	name: string
 	textureSides: Array<Array<number>>
-	colourSides: Array<Array<number>>
 
 	constructor(id: number, name: string, tileIndex: number) {
 		this.id = id
 		this.name = name
 		this.textureSides = []
-		this.colourSides = []
 		Sides.each(side => {
 			this.textureSides[side.id] = this.makeTextureSide(tileIndex)
-			this.colourSides[side.id] = [ 1, 1, 1 ] // white
 		})
-	}
-	setSideColour(side: geometrics.SideType, r: number, g: number, b: number) {
-		this.colourSides[side.id] = [r, g, b]
-		return this
 	}
 	setSideTile(side: geometrics.SideType, tileIndex: number) {
 		this.textureSides[side.id] = this.makeTextureSide(tileIndex)
@@ -60,7 +53,7 @@ function addBlockType(name: string, tileIndex: number) {
 addBlockType("air", 0)
 addBlockType("stone", 1)
 addBlockType("dirt", 2)
-addBlockType("grass", 3).setSideTile(Sides.byName.TOP, 0).setSideColour(Sides.byName.TOP, 0.67, 1.0, 0.33).setSideTile(Sides.byName.BOTTOM, 2)
+addBlockType("grass", 3).setSideTile(Sides.byName.TOP, 0).setSideTile(Sides.byName.BOTTOM, 2)
 addBlockType("planks", 4)
 addBlockType("brick", 7)
 addBlockType("cobble", 16)

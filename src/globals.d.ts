@@ -1,6 +1,8 @@
 declare var global: any;
 
-interface WebGL2RenderingContext extends WebGLRenderingContext { }
+interface WebGL2RenderingContext extends WebGLRenderingContext {
+	bufferSubData(target: number, dstByteOffset: number, srcData: ArrayBufferView, srcOffset: number, length: number): void;
+}
 declare var gl: WebGL2RenderingContext;
 
 // declare module vec2 {

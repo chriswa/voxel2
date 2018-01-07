@@ -14,7 +14,7 @@ export default class LocalChunkGenerator {
 
 	chunksToGenerate: { [key: string]: v3 }
 
-	constructor(private onChunkDataGenerated: (chunkData: ChunkData) => {}) {
+	constructor(private onChunkDataGenerated: (chunkData: ChunkData) => void) {
 		this.chunksToGenerate = {}
 	}
 	queueChunkGeneration(chunkPos: v3) {

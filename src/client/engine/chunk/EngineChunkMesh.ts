@@ -1,5 +1,6 @@
 import EngineChunkQuadWriter from "./EngineChunkQuadWriter"
 import EngineChunkRenderer from "./EngineChunkRenderer"
+import EngineChunkMeshVAO from "./EngineChunkMeshVAO"
 import * as geometrics from "geometrics"
 import v3 from "v3"
 import BlockPos from "BlockPos"
@@ -8,7 +9,7 @@ export default class EngineChunkMesh {
 
 	writeList: Array<number>
 
-	constructor(public vao: EngineChunkRenderer.EngineChunkMeshVAO, public vertexArray: Float32Array, private initialWriteCount: number = 0) {
+	constructor(public vao: EngineChunkMeshVAO, public vertexArray: Float32Array, private initialWriteCount: number = 0) {
 		this.vao = vao !== undefined ? vao : EngineChunkRenderer.acquireVAO()
 		this.writeList = []
 	}

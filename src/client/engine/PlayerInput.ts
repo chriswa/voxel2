@@ -43,7 +43,7 @@ export default class PlayerInput {
 		// on click, request pointer lock (or if already locked, fire a click event in Engine)
 		this.domElement.addEventListener('click', event => {
 			if (!this.pointerLocked) {
-				this.domElement.requestPointerLock = this.domElement.requestPointerLock || this.domElement.mozRequestPointerLock || this.domElement.webkitRequestPointerLock
+				this.domElement.requestPointerLock = this.domElement.requestPointerLock // || this.domElement.mozRequestPointerLock || this.domElement.webkitRequestPointerLock
 				this.domElement.requestPointerLock()
 			}
 			else {
@@ -59,8 +59,8 @@ export default class PlayerInput {
 		// update player camera rotation during pointer lock
 		document.addEventListener('mousemove', event => {
 			if (this.pointerLocked) {
-				this.heading -= this.mouseSpeed * (event.movementX || event.mozMovementX || event.webkitMovementX || 0)
-				this.pitch -= this.mouseSpeed * (event.movementY || event.mozMovementY || event.webkitMovementY || 0)
+				this.heading -= this.mouseSpeed * (event.movementX ) // || event.mozMovementX || event.webkitMovementX || 0)
+				this.pitch -= this.mouseSpeed * (event.movementY ) // || event.mozMovementY || event.webkitMovementY || 0)
 				while (this.heading > Math.PI) { this.heading -= 2 * Math.PI }
 				while (this.heading < Math.PI) { this.heading += 2 * Math.PI }
 				this.pitch = Math.min(Math.max(-Math.PI / 2, this.pitch), Math.PI / 2) // clamp to up and down
@@ -68,7 +68,7 @@ export default class PlayerInput {
 		}, false)
 	}
 	onPointerLockChange(_event: Event) {
-		if (document.pointerLockElement === this.domElement || document.mozPointerLockElement === this.domElement || document.webkitPointerLockElement === this.domElement) {
+		if (document.pointerLockElement === this.domElement ) { // || document.mozPointerLockElement === this.domElement || document.webkitPointerLockElement === this.domElement) {
 			this.pointerLocked = true
 		}
 		else {

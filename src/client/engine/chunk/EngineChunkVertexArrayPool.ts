@@ -1,4 +1,4 @@
-import * as  geometrics from "geometrics"
+import * as geometrics from "geometrics"
 import Pool from "Pool"
 
 function createPool(): Pool<Float32Array> {

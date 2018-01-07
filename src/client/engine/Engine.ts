@@ -1,4 +1,5 @@
-import * as  geometrics from "geometrics"
+import * as _ from "lodash"
+import * as geometrics from "geometrics"
 import EngineChunk from "./chunk/EngineChunk"
 import EngineChunkRenderer from "./chunk/EngineChunkRenderer"
 import EngineChunkBuilder from "./chunk/EngineChunkBuilder"
@@ -56,6 +57,7 @@ export default class Engine {
 		this.playerInput.heading = newRot.y
 	}
 	authAddChunkData(chunkData: ChunkData) {
+
 		// TODO: pass chunkData to webworker, when it's finished, get back chunkData, 0+ vertex buffers, and quadCount
 		// ...but for now, just do what the webworker will do in this thread
 		const quadIdsByBlockAndSide = quadIdsByBlockAndSidePool.acquire()
