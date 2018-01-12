@@ -24,7 +24,7 @@ const zFar = 5000
 
 export default class Engine {
 
-	authority: LocalAuthority // TODO: AuthorityInterface
+	authority: LocalAuthority // TODO: AuthorityInterface (to support RemoteAuthority)
 	started: boolean
 	playerPos: v3
 	playerRot: v3
@@ -78,7 +78,7 @@ export default class Engine {
 				neighbourChunk.attachNeighbour(side.opposite, chunk)
 			}
 		})
-		EngineChunkBuilder.stitchChunks(chunk)
+		//EngineChunkBuilder.stitchChunks(chunk)
 	}
 	authRemoveChunkData(chunkData: ChunkData) {
 		const chunk = this.chunks[chunkData.id]
@@ -96,8 +96,6 @@ export default class Engine {
 	authAddEntity() {
 	}
 	authRemoveEntity() {
-	}
-	authUpdateInventory() { // ?
 	}
 	authStart() {
 		this.started = true
@@ -181,7 +179,7 @@ export default class Engine {
 			m4.multiply(viewProjectionMatrix, worldViewProjectionMatrix, worldViewProjectionMatrix)
 			EngineChunkRenderer.setWorldViewProjectionMatrix(worldViewProjectionMatrix)
 
-			renderBudget = chunk.render(renderBudget)
+			renderBudget = chunk.renderStep(renderBudget)
 		})
 	}
 }

@@ -3,12 +3,6 @@ import v3 from "v3"
 import BlockTypes from "./BlockTypes"
 import EngineChunk from "client/engine/chunk/EngineChunk"
 
-//interface ChunkLike {
-//	blockData: Uint8Array
-//	neighbours: Array<ChunkLike>
-//	alterOneBlock: (blockPos: BlockPos, val: number) => Array<number>
-//}
-
 export default class BlockPos {
 
 	engineChunk: EngineChunk
@@ -26,7 +20,8 @@ export default class BlockPos {
 		return new BlockPos(this.engineChunk, this.pos)
 	}
 	recalculateIndex() {
-		this.i = geometrics.vectorToBlockIndex(this.pos)
+		const a = this.pos.a
+		this.i = a[0] * geometrics.CHUNK_SIZE_SQUARED + a[2] * geometrics.CHUNK_SIZE + a[1]
 	}
 	get blockDataSource(): Uint8Array {
 		return this.engineChunk ? this.engineChunk.chunkData.blocks : this.blockDataOverride

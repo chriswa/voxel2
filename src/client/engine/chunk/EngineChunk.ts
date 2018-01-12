@@ -96,7 +96,7 @@ export default class EngineChunk {
 		}
 	}
 
-	render(renderBudget: number) {
+	renderStep(renderBudget: number) {
 		this.cleanupRemovedQuads()
 		this.meshes.forEach((mesh, meshId) => {
 			const quadCount = meshId === this.meshes.length - 1 ? this.quadCount % geometrics.maxQuadsPerMesh : geometrics.maxQuadsPerMesh

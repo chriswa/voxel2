@@ -9,6 +9,8 @@ export default class VoxelsInMovingSphere {
 	sortedRelativePositions: Array< Array<number> >
 	loadedAbsolutePositions: { [key:string]: number }
 	newTag: number
+	added: Array<v3>
+	removed: Array<v3>
 
 	constructor(radius: number) {
 		this.centerPos = new v3(NaN, NaN, NaN)
@@ -17,9 +19,9 @@ export default class VoxelsInMovingSphere {
 		this.loadedAbsolutePositions = {}
 		this.newTag = 1
 	}
-	update(newCenterPos: v3): { added: Array<v3>, removed: Array<v3> } {
-		const addedPositions: Array<v3> = []
-		const removedPositions: Array<v3> = []
+	update(newCenterPos: v3) {
+		this.added = []
+		this.removed = []
 		// position changed?
 		if (!this.centerPos.exactEquals(newCenterPos)) {
 			this.newTag = this.newTag === 1 ? 2 : 1 // toggle between 1 and 2
@@ -29,7 +31,7 @@ export default class VoxelsInMovingSphere {
 				const cursorHash = cursorPos.toString()
 				// check if this position is new
 				if (!this.loadedAbsolutePositions[cursorHash]) {
-					addedPositions.push(cursorPos.clone())
+					this.added.push(cursorPos.clone())
 				}
 				// update the tag on this position regardless of whether it's new
 				this.loadedAbsolutePositions[cursorHash] = this.newTag
@@ -37,18 +39,14 @@ export default class VoxelsInMovingSphere {
 			// check for old (untagged) positions
 			_.each(this.loadedAbsolutePositions, (tag, cursorId) => {
 				if (tag !== this.newTag) {
-					const [x, y, z] = cursorId.split(",").map(parseInt)
+					const [x, y, z] = cursorId.split(",").map(n => parseInt(n))
 					const oldPos = new v3(x, y, z)
-					removedPositions.push(oldPos)
+					this.removed.push(oldPos)
 					delete this.loadedAbsolutePositions[cursorId]
 				}
 			})
 			// remember new position for next time
 			this.centerPos.setFrom(newCenterPos)
-		}
-		return {
-			added: addedPositions,
-			removed: removedPositions,
 		}
 	}
 }

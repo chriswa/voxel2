@@ -27,7 +27,8 @@
     "typescript": "^2.6.2",
     "uglifyjs-webpack-plugin": "^1.0.0-beta.3",
     "webpack": "^3.7.1",
-    "webpack-dev-server": "^2.9.2"
+    "webpack-dev-server": "^2.9.2",
+    "worker-loader": "^1.1.0"
   },
   "devDependencies": {
     "@types/gl-matrix": "^2.3.2"

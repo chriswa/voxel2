@@ -19,3 +19,11 @@ function onFrame(time: number) {
 	requestAnimationFrame(onFrame)
 }
 requestAnimationFrame(onFrame)
+
+
+
+//import Worker = require("worker-loader!./Worker");
+import Worker from "worker-loader!./Worker"
+const worker = new Worker();
+worker.postMessage({ a: 1 });
+worker.addEventListener("message", (event) => { console.log("worker responded with: ", event) });

@@ -114,7 +114,11 @@ export default class LocalChunkGenerator {
 
 		this.onChunkDataGenerated(chunkData)
 	}
+
 	terrainGen(pos: v3, v_dist: number, v_closest: number) {
+
+		const normalized_v_closest = (v_closest + 1.5) % 1
+
 		var workVector = new v3()
 		var biomeBlockTypes = [
 			BlockTypes.byName.stone.id,
@@ -127,7 +131,7 @@ export default class LocalChunkGenerator {
 			BlockTypes.byName.grass.id,
 		]
 
-		var biomeSolidBlock = biomeBlockTypes[Math.floor((v_closest + 0.5) * biomeBlockTypes.length)]
+		var biomeSolidBlock = biomeBlockTypes[Math.floor(normalized_v_closest * biomeBlockTypes.length)]
 		
 		workVector.setFrom(pos)
 

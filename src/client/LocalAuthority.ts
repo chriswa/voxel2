@@ -49,12 +49,14 @@ export default class LocalAuthority {
 
 		// load and unload chunks as needed
 		const chunkPos = geometrics.worldPosToChunkPos(newPlayerPos)
-		const chunkChanges = this.voxelsInMovingSphere.update(chunkPos)
-		if (chunkChanges.added.length) { console.log(`%cLocalAuthority: new chunk center is ${chunkPos.id}`, 'background: #222; color: #bada55') }
-		chunkChanges.added.forEach(chunkPos => {
+		this.voxelsInMovingSphere.update(chunkPos)
+		if (this.voxelsInMovingSphere.added.length) {
+			console.log(`%cLocalAuthority: new chunk center is ${chunkPos.id}`, 'background: #222; color: #bada55')
+		}
+		this.voxelsInMovingSphere.added.forEach(chunkPos => {
 			this.chunkGenerator.queueChunkGeneration(chunkPos)
 		})
-		chunkChanges.removed.forEach(chunkPos => {
+		this.voxelsInMovingSphere.removed.forEach(chunkPos => {
 			const chunkId = chunkPos.toString()
 			const chunk = this.chunks[chunkId]
 			if (chunk) { this.onChunkRemoved(chunk) }                          // if already loaded, unload it

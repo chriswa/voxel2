@@ -37,10 +37,6 @@ export function worldPosToChunkPos(worldPos: v3) {
 	return worldPos.clone().divideScalar(CHUNK_SIZE).floor()
 }
 
-export function vectorToBlockIndex(v: v3) {
-	return v.x * CHUNK_SIZE_SQUARED + v.z * CHUNK_SIZE + v.y
-}
-
 
 // Sides
 
