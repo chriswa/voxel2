@@ -23,8 +23,9 @@ export default class LocalAuthority {
 		this.playerPos = new v3(0, 0, 0)
 		this.playerRot = new v3(0, 0, 0)
 		
-		if (window.localStorage.playerTransform) {
-			const [x, y, z, pitch, heading, _roll ] = window.localStorage.playerTransform.split(",").map(parseFloat)
+		const storedPlayerTransformString: string = window.localStorage.getItem("playerTransform")
+		if (storedPlayerTransformString) {
+			const [x, y, z, pitch, heading, _roll ] = storedPlayerTransformString.split(",").map(parseFloat)
 			this.playerPos.set(x, y, z)
 			this.playerRot.set(pitch, heading, 0)
 			this.engine.authSetPlayerTransform(this.playerPos, this.playerRot)
@@ -32,6 +33,30 @@ export default class LocalAuthority {
 		
 		this.voxelsInMovingSphere = new VoxelsInMovingSphere(chunkLoadRadius)
 		this.updatePlayerPos(this.playerPos, this.playerRot) // start chunks loading
+
+		//this.loadChunk(new v3(0, -1, 1))
+		//this.loadChunk(new v3(0, -1, 0))
+		//this.loadChunk(new v3(1, -1, 0))
+		//this.loadChunk(new v3(1, -1, 1))
+		
+		//for (let x = -1; x <= 4; x += 1) {
+		//	for (let y = -1; y <= 1; y += 1) {
+		//		for (let z = -1; z <= 4; z += 1) {
+		//			this.loadChunk(new v3(x, y, z))
+		//		}
+		//	}
+		//}
+		//setTimeout(() => { this.loadChunk(new v3(1, 0, 0)) }, 1000)
+		//setTimeout(() => { this.unloadChunk(this.chunks["1,0,0"]) }, 2000)
+		//setTimeout(() => {
+		//	for (let x = -2; x <= 2; x += 1) {
+		//		for (let y = -2; y <= 2; y += 1) {
+		//			for (let z = -2; z <= 2; z += 1) {
+		//				this.unloadChunk(new v3(x, y, z))
+		//			}
+		//		}
+		//	}
+		//}, 10000)
 	}
 	onFrame(time: number) {
 		this.chunkGenerator.work()
@@ -41,7 +66,7 @@ export default class LocalAuthority {
 	updatePlayerPos(newPlayerPos: v3, newPlayerRot: v3) {
 		
 		// TESTING: store current values for reloading the page and staying in the same place
-		window.localStorage.playerTransform = newPlayerPos.toString() + ',' + newPlayerRot.toString()
+		window.localStorage.setItem("playerTransform", newPlayerPos.toString() + ',' + newPlayerRot.toString())
 
 		// record new vectors
 		this.playerPos.setFrom(newPlayerPos)
@@ -54,16 +79,24 @@ export default class LocalAuthority {
 			console.log(`%cLocalAuthority: new chunk center is ${chunkPos.id}`, 'background: #222; color: #bada55')
 		}
 		this.voxelsInMovingSphere.added.forEach(chunkPos => {
-			this.chunkGenerator.queueChunkGeneration(chunkPos)
+			this.loadChunk(chunkPos)
 		})
 		this.voxelsInMovingSphere.removed.forEach(chunkPos => {
-			const chunkId = chunkPos.toString()
-			const chunk = this.chunks[chunkId]
-			if (chunk) { this.onChunkRemoved(chunk) }                          // if already loaded, unload it
-			else       { this.chunkGenerator.cancelChunkGeneration(chunkPos) } // otherwise, cancel its queued generation
+			this.unloadChunk(chunkPos)
 		})
 	}
+
+	loadChunk(chunkPos: v3) {
+		this.chunkGenerator.queueChunkGeneration(chunkPos) // this will call this.onChunkDataGenerated asyncronously
+	}
+	unloadChunk(chunkPos: v3) {
+		const chunkId = chunkPos.toString()
+		const chunk = this.chunks[chunkId]
+		if (chunk) { this.onChunkRemoved(chunk) }                    // if already loaded, unload it
+		else { this.chunkGenerator.cancelChunkGeneration(chunkPos) } // otherwise, cancel its queued generation
+	}
 	onChunkDataGenerated(chunkData: ChunkData) {
+		//console.log(`add chunk ${chunkData.id}`)
 		this.chunks[chunkData.id] = chunkData
 		this.engine.authAddChunkData(chunkData)
 		// TODO: if engine isn't started yet, and enough (some? all?) chunks have been loaded, start it with engine.authStart()

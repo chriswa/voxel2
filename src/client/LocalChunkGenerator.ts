@@ -89,6 +89,8 @@ export default class LocalChunkGenerator {
 			}
 		}
 
+		//chunkData.blocks[0] = BlockTypes.byName.obsidian.id
+
 
 		/*
 		// SAMPLE TERRAIN GENERATION

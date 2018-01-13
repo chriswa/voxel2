@@ -7,50 +7,72 @@ import BlockPos from "BlockPos"
 
 export default class EngineChunkMesh {
 
-	writeList: Array<number>
+	minDirtyQuad: number = Infinity
+	maxDirtyQuad: number = -Infinity
 
-	constructor(public vao: EngineChunkMeshVAO, public vertexArray: Float32Array, private initialWriteCount: number = 0) {
+	constructor(public vao: EngineChunkMeshVAO, public vertexArray: Float32Array, initialWriteCount: number = 0) {
 		this.vao = vao !== undefined ? vao : EngineChunkRenderer.acquireVAO()
-		this.writeList = []
+		if (initialWriteCount) {
+			//console.log(`initialWriteCount = ${initialWriteCount}`)
+			this.minDirtyQuad = 0
+			this.maxDirtyQuad = initialWriteCount - 1
+		}
 	}
 	drawQuad(quadId: number, blockPos: BlockPos, side: geometrics.SideType, uvs: Array<number>, brightnesses: Array<number>) {
 		EngineChunkQuadWriter.drawQuad(this.vertexArray, quadId, blockPos, side, uvs, brightnesses)
-		this.writeList.push(quadId)
+		this.minDirtyQuad = Math.min(this.minDirtyQuad, quadId)
+		this.maxDirtyQuad = Math.max(this.maxDirtyQuad, quadId)
 	}
 	clearQuad(quadId: number) {
 		EngineChunkQuadWriter.clearQuad(this.vertexArray, quadId)
-		this.writeList.push(quadId)
+		this.minDirtyQuad = Math.min(this.minDirtyQuad, quadId)
+		this.maxDirtyQuad = Math.max(this.maxDirtyQuad, quadId)
 	}
+	updateQuadAO(quadId: number, blockPos: BlockPos, side: geometrics.SideType, uvs: Array<number>, brightnesses: Array<number>) {
+		const changed = EngineChunkQuadWriter.updateQuadAO(this.vertexArray, quadId, blockPos, side, uvs, brightnesses)
+		if (changed) {
+			this.minDirtyQuad = Math.min(this.minDirtyQuad, quadId)
+			this.maxDirtyQuad = Math.max(this.maxDirtyQuad, quadId)
+		}
+	}
+
 	updateVAO(renderBudget: number) {
-		if (renderBudget > 0 && (this.writeList.length > 0 || this.initialWriteCount)) {
+		if (renderBudget > 0 && this.minDirtyQuad !== Infinity) {
 
-			gl.bindBuffer(gl.ARRAY_BUFFER, this.vao.glBuffer)
+			//console.log(`EngineChunkMesh buffering quads ${this.minDirtyQuad} .. ${this.maxDirtyQuad}`)
 
-			// TODO: optimizations! this strategy is pretty naive...
-			var minQuadIndex = Infinity
-			var maxQuadIndex = 0
-
-			if (this.initialWriteCount) {
-				minQuadIndex = 0
-				maxQuadIndex = this.initialWriteCount - 1
-				this.initialWriteCount = 0
-			}
-
-			this.writeList.forEach(quadToWrite => {
-				minQuadIndex = Math.min(minQuadIndex, quadToWrite)
-				maxQuadIndex = Math.max(maxQuadIndex, quadToWrite)
-			})
-			this.writeList = [] // reset writeList
-
-			var quadPushCount = maxQuadIndex - minQuadIndex + 1
+			var quadPushCount = this.maxDirtyQuad - this.minDirtyQuad + 1
 			renderBudget -= Math.max(quadPushCount, 200) // increase the budget cost of small updates, since 1x1000 bufferSubData calls probably costs way more than 1000x1
 
+			gl.bindBuffer(gl.ARRAY_BUFFER, this.vao.glBuffer)
 			gl.bufferSubData(gl.ARRAY_BUFFER,
-				minQuadIndex * geometrics.quadVertexByteSize, // dstByteOffset
+				this.minDirtyQuad * geometrics.quadVertexByteSize * 4, // dstByteOffset
 				this.vertexArray,
-				minQuadIndex * geometrics.quadVertexByteSize / 4, // srcOffset (elements, not bytes!)
+				this.minDirtyQuad * geometrics.quadVertexByteSize, // srcOffset
 				quadPushCount * geometrics.quadVertexByteSize // length (bytes)
 			)
+
+			// nothing left to write
+			this.minDirtyQuad = Infinity
+			this.maxDirtyQuad = -Infinity
+
+			//gl.bindBuffer(gl.ARRAY_BUFFER, this.vao.glBuffer)
+			//gl.bufferSubData(gl.ARRAY_BUFFER,
+			//	this.minDirtyQuad * geometrics.quadVertexByteSize * 4, // dstByteOffset
+			//	this.vertexArray,
+			//	this.minDirtyQuad * geometrics.quadVertexByteSize, // srcOffset
+			//	1 * geometrics.quadVertexByteSize // length (bytes)
+			//)
+
+			//gl.bindBuffer(gl.ARRAY_BUFFER, this.vao.glBuffer)
+			//gl.bufferSubData(gl.ARRAY_BUFFER, this.minDirtyQuad * 128, this.vertexArray.subarray(this.minDirtyQuad * 32, (this.minDirtyQuad + 1) * 32)) // 128 = 8 elements per vertex * 4 verts per quad * 4 bytes per element?
+
+
+			//this.minDirtyQuad += 1
+			//if (this.minDirtyQuad > this.maxDirtyQuad) {
+			//	this.minDirtyQuad = Infinity
+			//	this.maxDirtyQuad = -Infinity
+			//}
 		}
 		return renderBudget
 	}

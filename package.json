@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "node node_modules/webpack/bin/webpack.js --env.NODE_ENV=production --progress --display-modules --display-reasons",
-    "dev": "node node_modules/webpack-dev-server/bin/webpack-dev-server.js --env.NODE_ENV=development --open --hot --host localhost --content-base dist/ --progress"
+    "dev": "node --max-old-space-size=2048 node_modules/webpack-dev-server/bin/webpack-dev-server.js --env.NODE_ENV=development --open --hot --host localhost --content-base dist/ --progress"
   },
   "author": "",
   "license": "UNLICENSED",

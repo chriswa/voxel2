@@ -9,6 +9,7 @@ import * as twgl from "twgl.js"
 import PlayerInput from "./PlayerInput"
 import LocalAuthority from "client/LocalAuthority";
 import ChunkData from "client/ChunkData";
+import DebugHud from "./DebugHud";
 
 const m4 = twgl.m4
 
@@ -30,6 +31,7 @@ export default class Engine {
 	playerRot: v3
 	chunks: { [key: string]: EngineChunk }
 	playerInput: PlayerInput
+	debugHud: DebugHud
 
 	constructor(authority: LocalAuthority) {
 		this.authority = authority
@@ -39,13 +41,15 @@ export default class Engine {
 		this.chunks = {}
 		this.playerInput = new PlayerInput(event => { this.onPlayerInputClick(event) })
 
+		this.debugHud = new DebugHud()
+
 		gl.enable(gl.DEPTH_TEST)
 		gl.enable(gl.CULL_FACE)
 	}
 
 	//
 	onPlayerInputClick(event: MouseEvent) {
-		console.log(event.button)
+		console.log(`mouse button clicked: ${event.button}`)
 	}
 
 
@@ -78,7 +82,7 @@ export default class Engine {
 				neighbourChunk.attachNeighbour(side.opposite, chunk)
 			}
 		})
-		//EngineChunkBuilder.stitchChunks(chunk)
+		EngineChunkBuilder.stitchChunks(chunk)
 	}
 	authRemoveChunkData(chunkData: ChunkData) {
 		const chunk = this.chunks[chunkData.id]
@@ -122,7 +126,7 @@ export default class Engine {
 		// forward.multiplyScalar(0.5)
 		// this.playerPos.add(forward)
 
-		const speed = 0.3
+		const speed = 0.6
 
 		// right
 		this.playerPos.a[0] += rightInput * playerRotationMatrix[0] * speed
@@ -142,6 +146,8 @@ export default class Engine {
 		this.authority.engineUpdatePlayerPos(this.playerPos, this.playerRot)
 
 		this.render(playerRotationMatrix)
+
+		this.debugHud.updatePlayer(this.playerPos, this.playerRot)
 	}
 	render(playerRotationMatrix: Array<number>) {
 		// handle resized browser window
@@ -176,6 +182,7 @@ export default class Engine {
 		let renderBudget = 1000 // TODO: this is a totally arbitrary number
 		_.each(this.chunks, chunk => {
 			m4.translation(chunk.worldPos.a, worldViewProjectionMatrix)
+			//m4.translation(chunk.worldPos.clone().multiplyScalar(1.001).a, worldViewProjectionMatrix) // VISIBLE GAP (and accumulated errors)
 			m4.multiply(viewProjectionMatrix, worldViewProjectionMatrix, worldViewProjectionMatrix)
 			EngineChunkRenderer.setWorldViewProjectionMatrix(worldViewProjectionMatrix)
 

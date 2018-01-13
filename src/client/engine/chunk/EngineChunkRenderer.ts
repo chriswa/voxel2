@@ -69,6 +69,7 @@ const EngineChunkRenderer = {
 		return this.vaoPool.acquire()
 	},
 	releaseVAO(vao: EngineChunkMeshVAO) {
+		//console.log(`releaseVAO`)
 		this.vaoPool.release(vao)
 	},
 	initRenderProgram() {

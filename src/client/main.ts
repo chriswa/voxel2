@@ -13,6 +13,11 @@ if (global.spector) {
 // TODO: fsm with menu... but for now, just start a local game
 const authority = new LocalAuthority()
 
+// TESTING
+//window["authority"] = authority
+//import v3 from "v3"
+//window["v3"] = v3
+
 // main loop
 function onFrame(time: number) {
 	authority.onFrame(time)
@@ -22,8 +27,7 @@ requestAnimationFrame(onFrame)
 
 
 
-//import Worker = require("worker-loader!./Worker");
-import Worker from "worker-loader!./Worker"
-const worker = new Worker();
-worker.postMessage({ a: 1 });
-worker.addEventListener("message", (event) => { console.log("worker responded with: ", event) });
+//import Worker from "worker-loader!./Worker"
+//const worker = new Worker();
+//worker.postMessage({ a: 1 });
+//worker.addEventListener("message", (event) => { console.log("worker responded with: ", event) });

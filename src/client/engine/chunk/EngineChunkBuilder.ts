@@ -9,6 +9,9 @@ import Pool from "Pool"
 import EngineChunk from "client/engine/chunk/EngineChunk";
 
 
+const occludedBrightnesses = [1, 0.7, 0.7, 0.6, 0.5, 0.5]
+//const occludedBrightnesses = [1, 0.5, 0.5, 0.2, 0.1, 0.1] // HIGH CONTRAST MODE
+
 const edgeOccludingBlockPos = new BlockPos(undefined, new v3(0, 0, 0))	 // optimization: keep these around for repeated calls to calculateVertexColours
 const cornerOccludingBlockPos = new BlockPos(undefined, new v3(0, 0, 0))	 // optimization: keep these around for repeated calls to calculateVertexColours
 
@@ -41,7 +44,6 @@ function calculateVertexColours(airBlockPos: BlockPos, side: geometrics.SideType
 		}
 	}
 
-	const occludedBrightnesses = [1, 0.7, 0.7, 0.6, 0.5, 0.5]
 	for (let i = 0; i < 4; i += 1) {
 		brightnesses[i] = occludedBrightnesses[brightnesses[i]]
 	}
@@ -153,14 +155,22 @@ export default {
 		//   - finally, z fills in the last two spots
 		// as more chunks get filled in, these anisotropic AO errors should disappear; with the camera far away from the edges of the loading chunks, this should not affect the player
 
-		function fixAO(blockPos: BlockPos, side: geometrics.SideType) {
-			const quadId = blockPos.getQuadId(side)
-			if (quadId > -1) {
-				// TODO: fix AO (if necessary)
+		const aoAirBlockPos = new BlockPos(undefined, new v3(0, 0, 0))	 // optimization
+		
+		function fixAO(solidBlockPos: BlockPos, side: geometrics.SideType) {
+			const quadId = solidBlockPos.getQuadId(side)
+			if (quadId >= 0) {
+				const blockTypeId = solidBlockPos.getBlockData()
+				const blockType = BlockTypes.byId[blockTypeId]
+				const uvs = blockType.textureSides[side.id]
+				aoAirBlockPos.setAdjacentToBlockPos(solidBlockPos, side)
+				const brightnesses = calculateVertexColours(aoAirBlockPos, side)
+				solidBlockPos.engineChunk.updateQuadAO(solidBlockPos, side, uvs, brightnesses)
 			}
 		}
 
 		function addFace(solidBlockPos: BlockPos, airBlockPos: BlockPos, side: geometrics.SideType) {
+			//console.log(`addFace for ${solidBlockPos.toString()} (${solidBlockPos.engineChunk.chunkData.pos.toString()}) facing ${side.name}: i.e. ${airBlockPos.toString()} (${airBlockPos.engineChunk.chunkData.pos.toString()})`)
 			const blockTypeId = solidBlockPos.getBlockData()
 			const blockType = BlockTypes.byId[blockTypeId]
 			const uvs = blockType.textureSides[side.id]
@@ -178,6 +188,8 @@ export default {
 				const faceNeighbourChunk = newCenterChunk.neighboursBySideId[side1.id]
 				if (faceNeighbourChunk) {
 
+					//console.log(`stitching ${newCenterChunk.id} on ${side1.name} to ${faceNeighbourChunk.id}`)
+
 					// add quads and update perpendicular AO
 					nearBlockPos.eachBlockOnFace(newCenterChunk, side1, () => {
 						farBlockPos.setAdjacentToBlockPos(nearBlockPos, side1)
@@ -191,8 +203,6 @@ export default {
 						}
 						else if (!farIsTransparent && nearIsTransparent) {
 							// add quad at farBlockPos facing side1.opposite
-							//console.log(`add quad at farBlockPos facing side1.opposite: ${farBlockPos.toString()}`)
-							//debugger///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 							addFace(farBlockPos, nearBlockPos, side1.opposite) // problem?
 						}
 
