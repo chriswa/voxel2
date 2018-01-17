@@ -5,7 +5,7 @@ import LocalChunkGenerator from "./LocalChunkGenerator"
 import v3 from "v3"
 import ChunkData from "./ChunkData"
 
-const chunkLoadRadius = 3
+const chunkLoadRadius = 5
 
 export default class LocalAuthority {
 

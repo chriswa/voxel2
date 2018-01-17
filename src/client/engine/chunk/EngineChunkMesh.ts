@@ -7,6 +7,7 @@ import BlockPos from "BlockPos"
 
 export default class EngineChunkMesh {
 
+	readyToRender: boolean = false
 	minDirtyQuad: number = Infinity
 	maxDirtyQuad: number = -Infinity
 
@@ -56,6 +57,8 @@ export default class EngineChunkMesh {
 			this.minDirtyQuad = Infinity
 			this.maxDirtyQuad = -Infinity
 
+			this.readyToRender = true
+
 			//gl.bindBuffer(gl.ARRAY_BUFFER, this.vao.glBuffer)
 			//gl.bufferSubData(gl.ARRAY_BUFFER,
 			//	this.minDirtyQuad * geometrics.quadVertexByteSize * 4, // dstByteOffset
@@ -78,7 +81,9 @@ export default class EngineChunkMesh {
 	}
 	render(renderBudget: number, quadCount: number) {
 		renderBudget = this.updateVAO(renderBudget)
-		this.vao.partialRender(quadCount)
+		if (this.readyToRender) {
+			this.vao.partialRender(quadCount)
+		}
 		return renderBudget
 	}
 }
