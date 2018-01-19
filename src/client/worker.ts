@@ -1,6 +1,6 @@
 import * as WorkerObligation from "./WorkerObligation"
 import v3 from "v3"
-import ChunkGeneration from "ChunkGeneration"
+import ChunkGeneration from "./ChunkGeneration"
 
 WorkerObligation.registerTaskHandlers({
 	"generateChunk": (requestPayload, responseCallback) => {

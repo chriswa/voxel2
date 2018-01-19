@@ -1,7 +1,10 @@
 import ChunkData from "./ChunkData"
 import v3 from "v3"
-import ChunkGeneration from "ChunkGeneration"
+import ChunkGeneration from "./ChunkGeneration"
 import * as WorkerManager from "./WorkerManager"
+import config from "./config"
+
+const useWorkers = <boolean>config.chunkGenWorkers
 
 export default class LocalChunkGenerator {
 
@@ -34,7 +37,7 @@ export default class LocalChunkGenerator {
 		const chunkData = ChunkData.pool.acquire() // n.b. chunkData may contain old data, so make sure to set everything!
 		chunkData.setChunkPos(chunkPos)
 
-		//if (true) {
+		if (useWorkers) {
 			const workerTaskId = WorkerManager.queueTask(
 				"generateChunk",
 				() => {  // onStart
@@ -51,10 +54,10 @@ export default class LocalChunkGenerator {
 				}
 			)
 
-		//}
-		//else {
-		//	ChunkGeneration.generateChunk(chunkPos, chunkData.blocks)
-		//	this.onChunkDataGenerated(chunkData)
-		//}
+		}
+		else {
+			ChunkGeneration.generateChunk(chunkPos, chunkData.blocks)
+			this.onChunkDataGenerated(chunkData)
+		}
 	}
 }

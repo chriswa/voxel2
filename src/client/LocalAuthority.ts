@@ -4,8 +4,9 @@ import VoxelsInMovingSphere from "VoxelsInMovingSphere"
 import LocalChunkGenerator from "./LocalChunkGenerator"
 import v3 from "v3"
 import ChunkData from "./ChunkData"
+import config from "./config"
 
-const chunkLoadRadius = 5
+const chunkLoadRadius = <number>config.chunkRange
 
 export default class LocalAuthority {
 
