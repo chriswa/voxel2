@@ -2,9 +2,7 @@ import ChunkData from "./ChunkData"
 import v3 from "v3"
 import ChunkGeneration from "./ChunkGeneration"
 import * as WorkerManager from "./WorkerManager"
-import config from "./config"
-
-const useWorkers = <boolean>config.chunkGenWorkers
+import Config from "./Config"
 
 export default class LocalChunkGenerator {
 
@@ -15,42 +13,38 @@ export default class LocalChunkGenerator {
 	}
 	queueChunkGeneration(chunkPos: v3) {
 		const chunkId = chunkPos.toString()
+		if (this.chunksToGenerate[chunkId]) { return } // already generating this chunk!
 		this.chunksToGenerate[chunkId] = chunkPos
+		this.generateChunk(chunkPos)
 	}
 	cancelChunkGeneration(chunkPos: v3) {
 		const chunkId = chunkPos.toString()
 		delete this.chunksToGenerate[chunkId]
 	}
-	work() {
-		let firstChunkId
-		for (let chunkId in this.chunksToGenerate) {
-			firstChunkId = chunkId
-			break
-		}
-		if (firstChunkId) {
-			const chunkPos = this.chunksToGenerate[firstChunkId]
-			delete this.chunksToGenerate[firstChunkId]
-			this.generateChunk(chunkPos)
-		}
-	}
 	generateChunk(chunkPos: v3) {
 		const chunkData = ChunkData.pool.acquire() // n.b. chunkData may contain old data, so make sure to set everything!
 		chunkData.setChunkPos(chunkPos)
 
-		if (useWorkers) {
+		const chunkId = chunkPos.toString()
+
+		if (<boolean>Config.chunkGenWorkers) {
 			const workerTaskId = WorkerManager.queueTask(
-				"generateChunk",
+				"w_generateChunk",
 				() => {  // onStart
+					//if (!this.chunksToGenerate[chunkId]) { return undefined } // if chunk generation was cancelled, stop now
+
 					const requestPayload = {
 						chunkPos: [chunkPos.a[0], chunkPos.a[1], chunkPos.a[2] ],
-						chunkBlockDataBuffer: chunkData.blocks.buffer,
+						blockData: chunkData.blocks.buffer,
 					}
 					const transferableObjects = [ chunkData.blocks.buffer ]
 					return { requestPayload, transferableObjects }
 				},
 				(responsePayload: WorkerManager.WorkerPayload) => {
-					chunkData.blocks = new Uint8Array(responsePayload.chunkBlockDataBuffer)
+					//if (!this.chunksToGenerate[chunkId]) { return } // if chunk generation was cancelled, stop now
+					chunkData.blocks = new Uint8Array(responsePayload.blockData)
 					this.onChunkDataGenerated(chunkData)
+					delete this.chunksToGenerate[chunkId]
 				}
 			)
 
@@ -58,6 +52,7 @@ export default class LocalChunkGenerator {
 		else {
 			ChunkGeneration.generateChunk(chunkPos, chunkData.blocks)
 			this.onChunkDataGenerated(chunkData)
+			delete this.chunksToGenerate[chunkId]
 		}
 	}
 }

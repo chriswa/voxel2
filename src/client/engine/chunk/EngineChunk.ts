@@ -85,19 +85,41 @@ export default class EngineChunk {
 		const mesh = this.meshes[meshIndex]
 		const meshQuadId = quadId % geometrics.maxQuadsPerMesh
 
+		const blockAndSideId = blockPos.i * 6 + side.id
+		// DEBUG
+		if (this.quadIdsByBlockAndSide[blockAndSideId] !== 0) {
+			console.log(`EngineChunk.addQuad: already a quad at ${blockPos.toString()}->${side.name}`)
+			const buggyQuadId = this.quadIdsByBlockAndSide[blockAndSideId]
+			const buggyMeshIndex = Math.floor(buggyQuadId / geometrics.maxQuadsPerMesh)
+			const buggyMesh = this.meshes[buggyMeshIndex]
+			const buggyMeshQuadId = buggyQuadId % geometrics.maxQuadsPerMesh
+			const buggyCursor = buggyMeshQuadId * geometrics.quadVertexByteSize
+			for (let i = 0; i < 4; i += 1) {
+				console.log(buggyMesh.vertexArray.subarray(buggyCursor + i*8, (buggyCursor + i * 8) + 7).join(', '))
+			}
+		}
+
 		mesh.drawQuad(meshQuadId, blockPos, side, uvs, brightnesses)
 
-		if (this.quadIdsByBlockAndSide[blockPos.i * 6 + side.id] !== 0) { debugger }
+		// DEBUG
+		if (this.quadIdsByBlockAndSide[blockAndSideId] !== 0) {
+			console.log(`new quad:`)
+			const newCursor = meshQuadId * geometrics.quadVertexByteSize
+			for (let i = 0; i < 4; i += 1) {
+				console.log(mesh.vertexArray.subarray(newCursor + i * 8, (newCursor + i * 8) + 7).join(', '))
+			}
+		}
 
-		this.quadIdsByBlockAndSide[blockPos.i * 6 + side.id] = quadId + 1
-
+		this.quadIdsByBlockAndSide[blockAndSideId] = quadId + 1
+		
 		return quadId
 	}
 	removeQuad(blockPos: BlockPos, side: geometrics.SideType) {
-		const quadId = this.quadIdsByBlockAndSide[blockPos.i * 6 + side.id] - 1
+		const blockAndSideId = blockPos.i * 6 + side.id
+		const quadId = this.quadIdsByBlockAndSide[blockAndSideId] - 1
 		if (quadId > -1) {
 			//console.log(`chunk ${this.id} removeQuad ${quadId}`)
-			this.quadIdsByBlockAndSide[blockPos.i * 6 + side.id] = 0
+			this.quadIdsByBlockAndSide[blockAndSideId] = 0
 			this.quadDirtyList.push(quadId) // leave it in the vertexArray for now, in case another quad needs to be drawn this frame!
 		}
 	}
@@ -106,13 +128,20 @@ export default class EngineChunk {
 		const meshIndex = Math.floor(quadId / geometrics.maxQuadsPerMesh)
 		const mesh = this.meshes[meshIndex]
 		const meshQuadId = quadId % geometrics.maxQuadsPerMesh
+
+		const blockAndSideId = blockPos.i * 6 + side.id
+		if (this.quadIdsByBlockAndSide[blockAndSideId] === 0) { debugger }
+
 		mesh.updateQuadAO(meshQuadId, blockPos, side, uvs, brightnesses)
 	}
 
 	renderStep(renderBudget: number) {
 		this.cleanupRemovedQuads()
 		this.meshes.forEach((mesh, meshId) => {
-			const meshQuadCount = (meshId === this.meshes.length - 1) ? (this.quadCount % geometrics.maxQuadsPerMesh) : geometrics.maxQuadsPerMesh
+			let meshQuadCount = geometrics.maxQuadsPerMesh // all meshes except the last one should render maxQuadsPerMesh
+			if (meshId === this.meshes.length - 1) { // the last mesh...
+				meshQuadCount = ((this.quadCount - 1) % geometrics.maxQuadsPerMesh) + 1 // should render the remaining quads (but beware if quadCount === maxQuadsPerMesh!)
+			}
 			renderBudget = mesh.render(renderBudget, meshQuadCount)
 		})
 		return renderBudget

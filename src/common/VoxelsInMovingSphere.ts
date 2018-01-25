@@ -36,14 +36,16 @@ export default class VoxelsInMovingSphere {
 				// update the tag on this position regardless of whether it's new
 				this.loadedAbsolutePositions[cursorHash] = this.newTag
 			})
-			// check for old (untagged) positions
+			// check for old (not recently tagged) positions
 			_.each(this.loadedAbsolutePositions, (tag, cursorId) => {
 				if (tag !== this.newTag) {
 					const [x, y, z] = cursorId.split(",").map(n => parseInt(n))
 					const oldPos = new v3(x, y, z)
 					this.removed.push(oldPos)
-					delete this.loadedAbsolutePositions[cursorId]
 				}
+			})
+			_.each(this.removed, (pos) => {
+				delete this.loadedAbsolutePositions[pos.toString()]
 			})
 			// remember new position for next time
 			this.centerPos.setFrom(newCenterPos)

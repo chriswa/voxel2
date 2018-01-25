@@ -35,7 +35,7 @@ import Worker from "worker-loader!./Worker"
 const estimatedLogicalCoresAvailable = (navigator.hardwareConcurrency || 4) - 2
 
 export type WorkerPayload = { taskId?: number, taskType?: string, [key: string]: any }
-export type WorkerOnStart = () => { requestPayload: WorkerPayload, transferableObjects: Array<any> }
+export type WorkerOnStart = () => { requestPayload: WorkerPayload, transferableObjects: Array<any> } | undefined
 export type WorkerOnComplete = (responsePayload: WorkerPayload) => void
 
 class WorkerController {
@@ -120,7 +120,9 @@ function processQueue() {
 }
 
 function startWorker(worker: WorkerController, task: Task) {
-	const { requestPayload, transferableObjects } = task.onStart()
+	const startResponse = task.onStart()
+	if (!startResponse) { return } // task was cancelled by onStart
+	const { requestPayload, transferableObjects } = startResponse
 
 	worker.start(task.taskId, task.taskType, requestPayload, transferableObjects, (responsePayload: WorkerPayload) => {
 		delete activeTasksByWorkerId[task.taskId]

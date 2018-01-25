@@ -12,6 +12,13 @@
       "scripthost"
     ],
     "jsx": "react",
-    "allowJs": true
+    "allowJs": true,
+    "baseUrl": ".",
+    "paths": {
+      "*": [
+        "*",
+        "src/common/*"
+      ]
+    }
   }
 }

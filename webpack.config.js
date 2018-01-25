@@ -1,5 +1,6 @@
 var path = require("path")
 var webpack = require("webpack")
+var ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 var HtmlWebpackPlugin = require("html-webpack-plugin")
 var UglifyJSPlugin = require("uglifyjs-webpack-plugin")
 
@@ -12,7 +13,8 @@ const config = {
 	output: {
 		path: path.resolve(__dirname, "./dist"),
 		publicPath: "/",
-		filename: "bundle-[hash].js"
+		//filename: "bundle-[hash].js",
+		filename: "bundle.js",
 	},
 	externals: {
 		"lodash": "_",
@@ -27,12 +29,24 @@ const config = {
 			{
 				test: /\.js$/,
 				loader: "babel-loader",
-				exclude: /node_modules/
+				exclude: /node_modules/,
 			},
 			{
 				test: /\.ts$/,
 				loader: "ts-loader",
-				exclude: /node_modules/
+				options: {
+					transpileOnly: true,
+				},
+				exclude: /node_modules/,
+			},
+			{
+				test: /\.worker\.js$/,
+				use: {
+					loader: 'worker-loader',
+					options: {
+						name: 'worker.js', // no [hash] !
+					},
+				},
 			},
 			//{
 			//	test: /\.(png|jpg|gif|svg)$/,
@@ -43,7 +57,9 @@ const config = {
 			//}
 		]
 	},
-	plugins: [],
+	plugins: [
+		//new ForkTsCheckerWebpackPlugin(),
+	],
 	devServer: {
 		historyApiFallback: true,
 		noInfo: true,

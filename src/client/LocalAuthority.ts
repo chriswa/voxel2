@@ -4,9 +4,9 @@ import VoxelsInMovingSphere from "VoxelsInMovingSphere"
 import LocalChunkGenerator from "./LocalChunkGenerator"
 import v3 from "v3"
 import ChunkData from "./ChunkData"
-import config from "./config"
+import Config from "./Config"
 
-const chunkLoadRadius = <number>config.chunkRange
+const chunkLoadRadius = <number>Config.chunkRange
 
 export default class LocalAuthority {
 
@@ -60,31 +60,36 @@ export default class LocalAuthority {
 		//}, 10000)
 	}
 	onFrame(time: number) {
-		this.chunkGenerator.work()
 		this.engine.authOnFrame(time)
 	}
 
 	updatePlayerPos(newPlayerPos: v3, newPlayerRot: v3) {
 		
 		// TESTING: store current values for reloading the page and staying in the same place
-		window.localStorage.setItem("playerTransform", newPlayerPos.toString() + ',' + newPlayerRot.toString())
+		if (<boolean>Config.rememberPlayerTransform) {
+			window.localStorage.setItem("playerTransform", newPlayerPos.toString() + ',' + newPlayerRot.toString())
+		}
 
 		// record new vectors
 		this.playerPos.setFrom(newPlayerPos)
 		this.playerRot.setFrom(newPlayerRot)
 
-		// load and unload chunks as needed
-		const chunkPos = geometrics.worldPosToChunkPos(newPlayerPos)
-		this.voxelsInMovingSphere.update(chunkPos)
-		if (this.voxelsInMovingSphere.added.length) {
-			console.log(`%cLocalAuthority: new chunk center is ${chunkPos.id}`, 'background: #222; color: #bada55')
+		if (<boolean>Config["chunkLoading"]) {
+
+			// load and unload chunks as needed
+			const chunkPos = geometrics.worldPosToChunkPos(newPlayerPos)
+			this.voxelsInMovingSphere.update(chunkPos)
+			if (this.voxelsInMovingSphere.added.length) {
+				console.log(`%cLocalAuthority: new chunk center is ${chunkPos.id}`, 'color: teal;')
+			}
+			this.voxelsInMovingSphere.added.forEach(chunkPos => {
+				this.loadChunk(chunkPos)
+			})
+			this.voxelsInMovingSphere.removed.forEach(chunkPos => {
+				this.unloadChunk(chunkPos)
+			})
+
 		}
-		this.voxelsInMovingSphere.added.forEach(chunkPos => {
-			this.loadChunk(chunkPos)
-		})
-		this.voxelsInMovingSphere.removed.forEach(chunkPos => {
-			this.unloadChunk(chunkPos)
-		})
 	}
 
 	loadChunk(chunkPos: v3) {

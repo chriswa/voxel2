@@ -65,9 +65,10 @@ const s: { [key: string]: SideType } = {
 	W: { name: "WEST", id: 5, axis: 0, axisDelta: -1, verts: [0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0,], dx: -1, dy: 0, dz: 0, size: CHUNK_SIZE, deltaIndex: -CHUNK_SIZE_SQUARED, },
 }
 
-_.each(s, side => {
+for (let key in s) {
+	const side = s[key]
 	side.deltaV3 = new v3(side.dx, side.dy, side.dz)
-})
+}
 
 s.T.tangents = [{ side: s.N, tangents: [s.E, s.W] }, { side: s.E, tangents: [s.S, s.N] }, { side: s.S, tangents: [s.W, s.E] }, { side: s.W, tangents: [s.N, s.S] }]
 s.B.tangents = [{ side: s.S, tangents: [s.W, s.E] }, { side: s.E, tangents: [s.S, s.N] }, { side: s.N, tangents: [s.E, s.W] }, { side: s.W, tangents: [s.N, s.S] }]
@@ -92,11 +93,11 @@ export const Sides = {
 			callback(Sides.byId[sideId])
 		}
 	},
-	findFromNormal(normal: v3) {
-		return _.minBy(Sides.byId, side => {
-			return Math.abs(side.dx - normal.x) + Math.abs(side.dy - normal.y) + Math.abs(side.dz - normal.z)
-		})
-	},
+	//findFromNormal(normal: v3) {
+	//	return _.minBy(Sides.byId, side => {   // TODO: rewrite without lodash for worker?
+	//		return Math.abs(side.dx - normal.x) + Math.abs(side.dy - normal.y) + Math.abs(side.dz - normal.z)
+	//	})
+	//},
 }
 
 

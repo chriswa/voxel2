@@ -14,7 +14,6 @@ export default {
 
 		var sampleVector = new v3()
 		var chunkBlockIndex = 0
-		var borderedTransparencyLookupIndex = 0
 		for (var x = 0; x < CHUNK_SIZE; x += 1) {
 			sampleVector.x = x + chunkPos.x * CHUNK_SIZE
 			for (var z = 0; z < CHUNK_SIZE; z += 1) {

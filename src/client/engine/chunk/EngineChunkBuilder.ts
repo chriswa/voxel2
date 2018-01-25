@@ -117,8 +117,8 @@ class ChunkPrewriter {
 
 export default {
 	drawInternalChunkQuads(
-		blockData: Uint8Array, 
-		quadIdsByBlockAndSide: Uint16Array, 
+		blockData: Uint8Array,
+		quadIdsByBlockAndSide: Uint16Array,
 		reusableVertexArrays: Array<Float32Array> = []
 	): {quadCount: number, vertexArrays: Array<Float32Array>} {
 
@@ -208,8 +208,8 @@ export default {
 
 						// update AO
 						_.each(side1.tangents, ({ side: tangentSide }) => {
-							fixAO(nearBlockPos, tangentSide)
-							fixAO(farBlockPos, tangentSide)
+							//fixAO(nearBlockPos, tangentSide)
+							//fixAO(farBlockPos, tangentSide)
 						})
 					})
 
@@ -222,11 +222,11 @@ export default {
 
 								// update AO of blocks along edge of edgeNeighbourChunk
 								farBlockPos.eachBlockOnEdge(edgeNeighbourChunk, side1, side2, () => {
-									fixAO(farBlockPos, side1.opposite)
-									fixAO(farBlockPos, side2.opposite)
-									const tangentAxis = 3 - side1.axis - side2.axis
-									fixAO(farBlockPos, geometrics.Sides.byAxis[tangentAxis][0])
-									fixAO(farBlockPos, geometrics.Sides.byAxis[tangentAxis][1])
+									//fixAO(farBlockPos, side1.opposite)
+									//fixAO(farBlockPos, side2.opposite)
+									//const tangentAxis = 3 - side1.axis - side2.axis
+									//fixAO(farBlockPos, geometrics.Sides.byAxis[tangentAxis][0])
+									//fixAO(farBlockPos, geometrics.Sides.byAxis[tangentAxis][1])
 								})
 
 								// for each corner...
@@ -239,9 +239,9 @@ export default {
 
 											// update AO of single block at corner of cornerNeighbourChunk
 											farBlockPos.setBlockOnCorner(cornerNeighbourChunk, side1, side2, side3)
-											fixAO(farBlockPos, side1.opposite)
-											fixAO(farBlockPos, side2.opposite)
-											fixAO(farBlockPos, side3.opposite)
+											//fixAO(farBlockPos, side1.opposite)
+											//fixAO(farBlockPos, side2.opposite)
+											//fixAO(farBlockPos, side3.opposite)
 										}
 									}
 								}
