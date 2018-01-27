@@ -3,6 +3,7 @@ import v3 from "v3"
 import ChunkGeneration from "./ChunkGeneration"
 import * as WorkerManager from "./WorkerManager"
 import Config from "./Config"
+import TaskGenerateChunk from "./worker/TaskGenerateChunk";
 
 export default class LocalChunkGenerator {
 
@@ -13,12 +14,14 @@ export default class LocalChunkGenerator {
 	}
 	queueChunkGeneration(chunkPos: v3) {
 		const chunkId = chunkPos.toString()
+		console.log(`LocalChunkGenerator.queueChunkGeneration ${chunkId}`)
 		if (this.chunksToGenerate[chunkId]) { return } // already generating this chunk!
 		this.chunksToGenerate[chunkId] = chunkPos
 		this.generateChunk(chunkPos)
 	}
 	cancelChunkGeneration(chunkPos: v3) {
 		const chunkId = chunkPos.toString()
+		console.log(`LocalChunkGenerator.cancelChunkGeneration ${chunkId}`)
 		delete this.chunksToGenerate[chunkId]
 	}
 	generateChunk(chunkPos: v3) {
@@ -28,10 +31,20 @@ export default class LocalChunkGenerator {
 		const chunkId = chunkPos.toString()
 
 		if (<boolean>Config.chunkGenWorkers) {
-			const workerTaskId = WorkerManager.queueTask(
+			
+			const workerTaskId = TaskGenerateChunk.queue(
+				chunkPos, chunkData,
+				() => {
+					this.onChunkDataGenerated(chunkData)
+					delete this.chunksToGenerate[chunkId]
+				}
+			)
+
+			/*const workerTaskId = WorkerManager.queueTask(
 				"w_generateChunk",
 				() => {  // onStart
-					//if (!this.chunksToGenerate[chunkId]) { return undefined } // if chunk generation was cancelled, stop now
+					console.log(`LocalChunkGenerator.generateChunk->onStart ${chunkId}`)
+					if (!this.chunksToGenerate[chunkId]) { console.log(`cancelled!`); return undefined } // if chunk generation was cancelled, stop now
 
 					const requestPayload = {
 						chunkPos: [chunkPos.a[0], chunkPos.a[1], chunkPos.a[2] ],
@@ -41,12 +54,14 @@ export default class LocalChunkGenerator {
 					return { requestPayload, transferableObjects }
 				},
 				(responsePayload: WorkerManager.WorkerPayload) => {
-					//if (!this.chunksToGenerate[chunkId]) { return } // if chunk generation was cancelled, stop now
+					console.log(`LocalChunkGenerator.generateChunk->onComplete ${chunkId}`)
+					if (!this.chunksToGenerate[chunkId]) { console.log(`cancelled!`); return } // if chunk generation was cancelled, stop now
+
 					chunkData.blocks = new Uint8Array(responsePayload.blockData)
 					this.onChunkDataGenerated(chunkData)
 					delete this.chunksToGenerate[chunkId]
 				}
-			)
+			)*/
 
 		}
 		else {

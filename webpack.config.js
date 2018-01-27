@@ -59,6 +59,9 @@ const config = {
 	},
 	plugins: [
 		//new ForkTsCheckerWebpackPlugin(),
+		new webpack.LoaderOptionsPlugin({
+			debug: true,
+		}),
 	],
 	devServer: {
 		historyApiFallback: true,

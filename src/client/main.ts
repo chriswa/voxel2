@@ -1,5 +1,5 @@
 import LocalAuthority from "./LocalAuthority"
-import * as WorkerManager from "./WorkerManager"
+import WorkerOverseer from "./WorkerOverseer"
 
 // support browser gl debugging tool "Spector" capturing from very start of script execution
 // http://www.realtimerendering.com/blog/debugging-webgl-with-spectorjs/
@@ -12,7 +12,7 @@ if (global.spector) {
 }
 
 // init web workers
-WorkerManager.init()
+WorkerOverseer.init()
 
 // TODO: fsm with menu... but for now, just start a local game
 const authority = new LocalAuthority()

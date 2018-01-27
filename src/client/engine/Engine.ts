@@ -12,6 +12,7 @@ import ChunkData from "client/ChunkData"
 import DebugHud from "./DebugHud"
 import Config from "../Config"
 import * as WorkerManager from "../WorkerManager"
+import TaskDrawInternalVerts from "../worker/TaskDrawInternalVerts";
 
 const m4 = twgl.m4
 
@@ -72,20 +73,28 @@ export default class Engine {
 		const quadIdsByBlockAndSide = quadIdsByBlockAndSidePool.acquire()
 		if (<boolean>Config.chunkInternalWorkers) {
 
-			const vertexArrays = [] ;;; // TODO: if the main pool has an item in it, pass it along to the worker to use (to avoid unnecessary allocations)
+			const initialVertexArrays = [] ;;; // TODO: if the main pool has an item in it, pass it along to the worker to use (to avoid unnecessary allocations)
 
+			TaskDrawInternalVerts.queue(
+				chunkData, initialVertexArrays, quadIdsByBlockAndSide,
+				(quadCount, vertexArrays, quadIdsByBlockAndSide) => {
+					this.addPartiallyPrebuiltChunk(chunkData, quadCount, vertexArrays, quadIdsByBlockAndSide)
+				}
+			)
+
+			/*
 			const workerTaskId = WorkerManager.queueTask(
 				"w_chunkPreBuild",
 				() => {  // onStart
 					const requestPayload = {
 						blockData: chunkData.blocks.buffer,
 						quadIdsByBlockAndSide: quadIdsByBlockAndSide.buffer,
-						vertexArrays,
+						initialVertexArrays,
 					}
 					const transferableObjects = [
 						chunkData.blocks.buffer,
 						quadIdsByBlockAndSide.buffer,
-						...(vertexArrays.map(a => a.buffer))
+						...(initialVertexArrays.map(a => a.buffer))
 					]
 					return { requestPayload, transferableObjects }
 				},
@@ -107,6 +116,7 @@ export default class Engine {
 					}
 				}
 			)
+			*/
 
 		}
 		else {

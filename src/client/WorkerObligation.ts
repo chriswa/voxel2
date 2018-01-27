@@ -1,11 +1,14 @@
 export type WorkerPayload = { taskId?: number, taskType?: string, [key: string]: any }
 export type ResponseCallback = (responsePayload: WorkerPayload, transferableObjects: Array<any>) => void
-export type TaskHandler = (requestPayload: WorkerPayload, responseCallback: ResponseCallback) => void
+export interface TaskHandler { id: string, work: (requestPayload: WorkerPayload, responseCallback: ResponseCallback) => void }
 
-export function registerTaskHandlers(taskHandlers: { [key: string]: TaskHandler }) {
+export function registerTaskHandlers(taskHandlersArray: Array<TaskHandler>) {
 	const ctx: Worker = self as any
 	let activeTaskId: number
 	let activeTaskType: string
+
+	const taskHandlersByType: { [key: string]: TaskHandler } = {}
+	taskHandlersArray.forEach(taskHandler => { taskHandlersByType[taskHandler.id] = taskHandler })
 
 	ctx.addEventListener("message", (event) => {
 		const requestPayload: WorkerPayload = event.data
@@ -21,8 +24,8 @@ export function registerTaskHandlers(taskHandlers: { [key: string]: TaskHandler 
 			activeTaskId = requestPayload.taskId
 			activeTaskType = requestPayload.taskType
 
-			const taskHandler = taskHandlers[activeTaskType]
-			taskHandler(requestPayload, (responsePayload, transferableObjects) => {
+			const taskHandler = taskHandlersByType[activeTaskType]
+			taskHandler.work(requestPayload, (responsePayload, transferableObjects) => {
 				responsePayload.taskId = activeTaskId
 				activeTaskId = undefined
 				activeTaskType = undefined

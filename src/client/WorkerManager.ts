@@ -1,5 +1,4 @@
 import * as _ from "lodash"
-import Worker from "worker-loader!./Worker"
 
 /*
 	USAGE
@@ -32,20 +31,17 @@ import Worker from "worker-loader!./Worker"
 
 */
 
-const estimatedLogicalCoresAvailable = (navigator.hardwareConcurrency || 4) - 2
-
 export type WorkerPayload = { taskId?: number, taskType?: string, [key: string]: any }
 export type WorkerOnStart = () => { requestPayload: WorkerPayload, transferableObjects: Array<any> } | undefined
 export type WorkerOnComplete = (responsePayload: WorkerPayload) => void
 
-class WorkerController {
+export class WorkerController {
 
-	worker: Worker = new Worker() // spawn WebWorker!
 	activeTaskId: number
 	activeTaskType: string
 	onResponse: WorkerOnComplete
 
-	constructor(public workerId: number) {
+	constructor(public worker: Worker, public workerId: number) {
 		this.worker.addEventListener('message', (e: MessageEvent) => {
 			const responsePayload: WorkerPayload = e.data
 			if (responsePayload.taskId !== this.activeTaskId) { return } // old job? ignore response
@@ -85,19 +81,17 @@ type Task = {
 }
 
 let taskIdCounter: number = 0
-const workerCount: number = estimatedLogicalCoresAvailable
 const activeTasksByWorkerId: { [key: number]: Task } = {}
-const workerControllers: Array<WorkerController> = []
+let workerControllers: Array<WorkerController> = []
 const inactiveWorkerControllers: Array<WorkerController> = []
 const queuedTasks: Array<Task> = []
 
 // initialize workers
-export function init() {
-	for (let workerId = 0; workerId < workerCount; workerId += 1) {
-		const workerController: WorkerController = new WorkerController(workerId)
-		workerControllers[workerId] = workerController
+export function init(workerControllers_: Array<WorkerController>) {
+	workerControllers = workerControllers_
+	workerControllers.forEach(workerController => {
 		inactiveWorkerControllers.push(workerController)
-	}
+	})
 }
 
 export function queueTask(taskType: string, onStart: WorkerOnStart, onComplete: WorkerOnComplete) {
@@ -114,7 +108,6 @@ function processQueue() {
 		const task = queuedTasks.shift()
 		const worker = inactiveWorkerControllers.pop()
 		task.assignedWorkerId = worker.workerId
-		activeTasksByWorkerId[task.taskId] = task
 		startWorker(worker, task)
 	}
 }
@@ -123,6 +116,8 @@ function startWorker(worker: WorkerController, task: Task) {
 	const startResponse = task.onStart()
 	if (!startResponse) { return } // task was cancelled by onStart
 	const { requestPayload, transferableObjects } = startResponse
+
+	activeTasksByWorkerId[task.taskId] = task
 
 	worker.start(task.taskId, task.taskType, requestPayload, transferableObjects, (responsePayload: WorkerPayload) => {
 		delete activeTasksByWorkerId[task.taskId]

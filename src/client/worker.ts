@@ -2,9 +2,17 @@ import * as WorkerObligation from "./WorkerObligation"
 import v3 from "v3"
 import ChunkGeneration from "./ChunkGeneration"
 import EngineChunkBuilder from "./engine/chunk/EngineChunkBuilder"
+import TaskGenerateChunk from "./worker/TaskGenerateChunk"
+import TaskDrawInternalVerts from "./worker/TaskDrawInternalVerts"
 
 importScripts('//unpkg.com/lodash@4.17.4/lodash.js')
 
+WorkerObligation.registerTaskHandlers([
+	TaskGenerateChunk,
+	TaskDrawInternalVerts,
+])
+
+/*
 WorkerObligation.registerTaskHandlers({
 	"w_generateChunk": (requestPayload, responseCallback) => {
 		// get request
@@ -24,7 +32,7 @@ WorkerObligation.registerTaskHandlers({
 		// get request
 		const blockData: Uint8Array = new Uint8Array(requestPayload.blockData)
 		const quadIdsByBlockAndSide: Uint16Array = new Uint16Array(requestPayload.quadIdsByBlockAndSide)
-		const initialVertexArrays: Array<Float32Array> = requestPayload.vertexArrays.map(buffer => new Float32Array(buffer))
+		const initialVertexArrays: Array<Float32Array> = requestPayload.initialVertexArrays.map(buffer => new Float32Array(buffer))
 
 		// process request
 		const { quadCount, vertexArrays } = EngineChunkBuilder.drawInternalChunkQuads(blockData, quadIdsByBlockAndSide, initialVertexArrays)
@@ -44,3 +52,4 @@ WorkerObligation.registerTaskHandlers({
 		responseCallback(responsePayload, transferableObjects)
 	}
 })
+*/
