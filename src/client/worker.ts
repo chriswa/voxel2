@@ -1,6 +1,6 @@
-import * as WorkerObligation from "./WorkerObligation"
+import * as WorkerObligation from "./worker/WorkerObligation"
 import v3 from "v3"
-import ChunkGeneration from "./ChunkGeneration"
+import ChunkGeneration from "./singleplayer/ChunkGeneration"
 import EngineChunkBuilder from "./engine/chunk/EngineChunkBuilder"
 import TaskGenerateChunk from "./worker/TaskGenerateChunk"
 import TaskDrawInternalVerts from "./worker/TaskDrawInternalVerts"

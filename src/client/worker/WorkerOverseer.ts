@@ -1,5 +1,5 @@
 import * as WorkerManager from "./WorkerManager"
-import Worker from "worker-loader!./worker"
+import Worker from "worker-loader!../worker"
 
 const estimatedLogicalCoresAvailable = (navigator.hardwareConcurrency || 4) - 2
 

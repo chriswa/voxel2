@@ -1,5 +1,6 @@
 import * as _ from "lodash"
 
+
 /*
 	USAGE
 	=====
@@ -62,7 +63,7 @@ export class WorkerController {
 		this.worker.postMessage(requestPayload, transferableObjects) // transfer with "Transferable Objects"
 	}
 	cancel() {
-		// this may be ignored, but we're safe either way; we won't accept another task until we receive a message (e.g. "OK cancelled")
+		// this may safely be ignored by the worker
 		this.worker.postMessage({ cancelTask: this.activeTaskId })
 	}
 }
@@ -76,6 +77,7 @@ type Task = {
 	taskId: number,
 	taskType: string,
 	assignedWorkerId?: number,
+	cancelled?: boolean,
 	onStart: WorkerOnStart,
 	onComplete: WorkerOnComplete,
 }
@@ -123,7 +125,9 @@ function startWorker(worker: WorkerController, task: Task) {
 		delete activeTasksByWorkerId[task.taskId]
 		inactiveWorkerControllers.push(worker)
 		processQueue() // now that this worker's free, assign another task to it if one is available!
-		task.onComplete(responsePayload)
+		if (!task.cancelled) {
+			task.onComplete(responsePayload)
+		}
 	})
 }
 
@@ -137,7 +141,8 @@ export function cancelTask(taskId: number): boolean {
 	const task = activeTasksByWorkerId[taskId]
 	if (task) {
 		const workerController: WorkerController = workerControllers[task.assignedWorkerId]
-		workerController.cancel() // fire off the cancel message and continue waiting for a reply...
+		workerController.cancel() // fire off the cancel message and continue waiting for a reply... (since we don't want to overload a worker that's still working)
+		task.cancelled = true // we will ignore the reply
 	}
 	else {
 		debugger

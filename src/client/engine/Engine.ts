@@ -7,12 +7,13 @@ import Pool from "Pool"
 import v3 from "v3"
 import * as twgl from "twgl.js"
 import PlayerInput from "./PlayerInput"
-import LocalAuthority from "client/LocalAuthority"
+import LocalAuthority from "../singleplayer/LocalAuthority"
 import ChunkData from "client/ChunkData"
 import DebugHud from "./DebugHud"
 import Config from "../Config"
-import * as WorkerManager from "../WorkerManager"
-import TaskDrawInternalVerts from "../worker/TaskDrawInternalVerts";
+import * as WorkerManager from "../worker/WorkerManager"
+import TaskDrawInternalVerts from "../worker/TaskDrawInternalVerts"
+import DebugChunkLogger from "../DebugChunkLogger"
 
 const m4 = twgl.m4
 
@@ -33,7 +34,7 @@ export default class Engine {
 	playerPos: v3
 	playerRot: v3
 	chunks: { [key: string]: EngineChunk }
-	cancelledChunks: { [key: string]: boolean }
+	chunkDrawTaskIds: { [key: string]: number }
 	playerInput: PlayerInput
 	debugHud: DebugHud
 
@@ -43,7 +44,7 @@ export default class Engine {
 		this.playerPos = new v3(0, 0, 0)
 		this.playerRot = new v3(0, 0, 0) // pitch, heading, _roll
 		this.chunks = {}
-		this.cancelledChunks = {}
+		this.chunkDrawTaskIds = {}
 		this.playerInput = new PlayerInput(event => { this.onPlayerInputClick(event) })
 
 		this.debugHud = new DebugHud()
@@ -66,65 +67,30 @@ export default class Engine {
 		this.playerInput.heading = newRot.y
 	}
 	authAddChunkData(chunkData: ChunkData) {
-		delete this.cancelledChunks[chunkData.id]
+		DebugChunkLogger(chunkData.pos, "Engine.authAddChunkData")
 
-		// TODO: pass chunkData to webworker, when it's finished, get back chunkData, 0+ vertex buffers, and quadCount
-		// ...but for now, just do what the webworker will do in this thread
 		const quadIdsByBlockAndSide = quadIdsByBlockAndSidePool.acquire()
 		if (<boolean>Config.chunkInternalWorkers) {
 
 			const initialVertexArrays = [] ;;; // TODO: if the main pool has an item in it, pass it along to the worker to use (to avoid unnecessary allocations)
 
-			TaskDrawInternalVerts.queue(
+			this.chunkDrawTaskIds[chunkData.id] = TaskDrawInternalVerts.queue(
 				chunkData, initialVertexArrays, quadIdsByBlockAndSide,
 				(quadCount, vertexArrays, quadIdsByBlockAndSide) => {
-					this.addPartiallyPrebuiltChunk(chunkData, quadCount, vertexArrays, quadIdsByBlockAndSide)
+					delete this.chunkDrawTaskIds[chunkData.id]
+					this.authAddChunkData_withInternalQuads(chunkData, quadCount, vertexArrays, quadIdsByBlockAndSide)
 				}
 			)
-
-			/*
-			const workerTaskId = WorkerManager.queueTask(
-				"w_chunkPreBuild",
-				() => {  // onStart
-					const requestPayload = {
-						blockData: chunkData.blocks.buffer,
-						quadIdsByBlockAndSide: quadIdsByBlockAndSide.buffer,
-						initialVertexArrays,
-					}
-					const transferableObjects = [
-						chunkData.blocks.buffer,
-						quadIdsByBlockAndSide.buffer,
-						...(initialVertexArrays.map(a => a.buffer))
-					]
-					return { requestPayload, transferableObjects }
-				},
-				(responsePayload: WorkerManager.WorkerPayload) => {
-
-					// was it cancelled in the meantime?
-					if (this.cancelledChunks[chunkData.id]) {
-						delete this.cancelledChunks[chunkData.id]
-					}
-					else {
-
-						chunkData.blocks = new Uint8Array(responsePayload.blockData) // transfered back!
-						this.addPartiallyPrebuiltChunk(
-							chunkData,
-							<number>responsePayload.quadCount,
-							responsePayload.vertexArrays.map(buffer => new Float32Array(buffer)),
-							new Uint16Array(responsePayload.quadIdsByBlockAndSide)
-						)
-					}
-				}
-			)
-			*/
 
 		}
 		else {
 			const { quadCount, vertexArrays } = EngineChunkBuilder.drawInternalChunkQuads(chunkData.blocks, quadIdsByBlockAndSide)
-			this.addPartiallyPrebuiltChunk(chunkData, quadCount, vertexArrays, quadIdsByBlockAndSide)
+			this.authAddChunkData_withInternalQuads(chunkData, quadCount, vertexArrays, quadIdsByBlockAndSide)
 		}
 	}
-	addPartiallyPrebuiltChunk(chunkData: ChunkData, quadCount: number, initialVertexArrays: Array<Float32Array>, quadIdsByBlockAndSide: Uint16Array) {
+	authAddChunkData_withInternalQuads(chunkData: ChunkData, quadCount: number, initialVertexArrays: Array<Float32Array>, quadIdsByBlockAndSide: Uint16Array) {
+		DebugChunkLogger(chunkData.pos, "Engine.authAddChunkData_withInternalQuads")
+
 		// create our chunk object
 		const chunk = new EngineChunk(chunkData, quadCount, initialVertexArrays, quadIdsByBlockAndSide)
 		this.chunks[chunkData.id] = chunk
@@ -143,6 +109,8 @@ export default class Engine {
 		EngineChunkBuilder.stitchChunks(chunk)
 	}
 	authRemoveChunkData(chunkData: ChunkData) {
+		DebugChunkLogger(chunkData.pos, "Engine.authRemoveChunkData")
+		
 		const chunk = this.chunks[chunkData.id]
 		if (chunk) {
 			geometrics.Sides.each(side => {
@@ -157,7 +125,12 @@ export default class Engine {
 			delete this.chunks[chunkData.id]
 		}
 		else {
-			this.cancelledChunks[chunkData.id] = true
+			
+			const taskId = this.chunkDrawTaskIds[chunkData.id]
+			if (taskId) {
+				TaskDrawInternalVerts.cancel(taskId)
+			}
+
 		}
 	}
 	authAddEntity() {
@@ -189,7 +162,7 @@ export default class Engine {
 		// forward.multiplyScalar(0.5)
 		// this.playerPos.add(forward)
 
-		const speed = 0.6
+		const speed = Config.speed
 
 		// right
 		this.playerPos.a[0] += rightInput * playerRotationMatrix[0] * speed

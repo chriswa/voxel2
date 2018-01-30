@@ -13,8 +13,8 @@ export function registerTaskHandlers(taskHandlersArray: Array<TaskHandler>) {
 	ctx.addEventListener("message", (event) => {
 		const requestPayload: WorkerPayload = event.data
 
-		if (requestPayload.cancel) {
-			console.error(`TODO: worker task cancellation`)
+		if (requestPayload.cancelTask) {
+			console.log("worker task cancelled (but unable to stop non-incremental task)")
 		}
 		else if (activeTaskId) {
 			console.error(`Worker was messaged to start a new task before finishing the previous task!?`)

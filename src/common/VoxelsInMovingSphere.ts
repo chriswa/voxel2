@@ -22,33 +22,39 @@ export default class VoxelsInMovingSphere {
 	update(newCenterPos: v3) {
 		this.added = []
 		this.removed = []
-		// position changed?
-		if (!this.centerPos.exactEquals(newCenterPos)) {
-			this.newTag = this.newTag === 1 ? 2 : 1 // toggle between 1 and 2
-			const cursorPos = new v3()
-			this.sortedRelativePositions.forEach((deltaPos) => {
-				cursorPos.set(deltaPos[0], deltaPos[1], deltaPos[2]).add(newCenterPos)
-				const cursorHash = cursorPos.toString()
-				// check if this position is new
-				if (!this.loadedAbsolutePositions[cursorHash]) {
-					this.added.push(cursorPos.clone())
-				}
-				// update the tag on this position regardless of whether it's new
-				this.loadedAbsolutePositions[cursorHash] = this.newTag
-			})
-			// check for old (not recently tagged) positions
-			_.each(this.loadedAbsolutePositions, (tag, cursorId) => {
-				if (tag !== this.newTag) {
-					const [x, y, z] = cursorId.split(",").map(n => parseInt(n))
-					const oldPos = new v3(x, y, z)
-					this.removed.push(oldPos)
-				}
-			})
-			_.each(this.removed, (pos) => {
-				delete this.loadedAbsolutePositions[pos.toString()]
-			})
-			// remember new position for next time
-			this.centerPos.setFrom(newCenterPos)
+		
+		// no change? short circuit
+		if (this.centerPos.exactEquals(newCenterPos)) {
+			return
 		}
+		
+		this.newTag = this.newTag === 1 ? 2 : 1 // toggle between 1 and 2
+
+		const cursorPos = new v3()
+		
+		this.sortedRelativePositions.forEach((deltaPos) => {
+			cursorPos.set(deltaPos[0], deltaPos[1], deltaPos[2]).add(newCenterPos)
+			const cursorHash = cursorPos.toString()
+			// check if this position is new
+			if (!this.loadedAbsolutePositions[cursorHash]) {
+				this.added.push(cursorPos.clone())
+			}
+			// update the tag on this position
+			this.loadedAbsolutePositions[cursorHash] = this.newTag
+		})
+		// any positions with the old tag are to be removed
+		_.each(this.loadedAbsolutePositions, (tag, cursorId) => {
+			if (tag !== this.newTag) {
+				const [x, y, z] = cursorId.split(",").map(n => parseInt(n))
+				const oldPos = new v3(x, y, z)
+				this.removed.push(oldPos)
+			}
+		})
+		// remove old entries (done as a separate pass just in case deletes may affect _.each above)
+		_.each(this.removed, (pos) => {
+			delete this.loadedAbsolutePositions[pos.toString()]
+		})
+		// remember new position for next time
+		this.centerPos.setFrom(newCenterPos)
 	}
 }

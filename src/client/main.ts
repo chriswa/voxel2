@@ -1,5 +1,5 @@
-import LocalAuthority from "./LocalAuthority"
-import WorkerOverseer from "./WorkerOverseer"
+import LocalAuthority from "./singleplayer/LocalAuthority"
+import WorkerOverseer from "./worker/WorkerOverseer"
 
 // support browser gl debugging tool "Spector" capturing from very start of script execution
 // http://www.realtimerendering.com/blog/debugging-webgl-with-spectorjs/

@@ -1,10 +1,11 @@
 import * as geometrics from "geometrics"
-import Engine from "./engine/Engine"
+import Engine from "../engine/Engine"
 import VoxelsInMovingSphere from "VoxelsInMovingSphere"
 import LocalChunkGenerator from "./LocalChunkGenerator"
 import v3 from "v3"
-import ChunkData from "./ChunkData"
-import Config from "./Config"
+import ChunkData from "../ChunkData"
+import Config from "../Config"
+import DebugChunkLogger from "../DebugChunkLogger"
 
 const chunkLoadRadius = <number>Config.chunkRange
 
@@ -93,21 +94,25 @@ export default class LocalAuthority {
 	}
 
 	loadChunk(chunkPos: v3) {
+		DebugChunkLogger(chunkPos, "LocalAuthority.loadChunk")
 		this.chunkGenerator.queueChunkGeneration(chunkPos) // this will call this.onChunkDataGenerated asyncronously
 	}
 	unloadChunk(chunkPos: v3) {
+		DebugChunkLogger(chunkPos, "LocalAuthority.unloadChunk")
 		const chunkId = chunkPos.toString()
 		const chunk = this.chunks[chunkId]
 		if (chunk) { this.onChunkRemoved(chunk) }                    // if already loaded, unload it
 		else { this.chunkGenerator.cancelChunkGeneration(chunkPos) } // otherwise, cancel its queued generation
 	}
 	onChunkDataGenerated(chunkData: ChunkData) {
+		DebugChunkLogger(chunkData.pos, "LocalAuthority.onChunkDataGenerated")
 		//console.log(`add chunk ${chunkData.id}`)
 		this.chunks[chunkData.id] = chunkData
 		this.engine.authAddChunkData(chunkData)
 		// TODO: if engine isn't started yet, and enough (some? all?) chunks have been loaded, start it with engine.authStart()
 	}
 	onChunkRemoved(chunkData: ChunkData) {
+		DebugChunkLogger(chunkData.pos, "LocalAuthority.onChunkRemoved")
 		delete this.chunks[chunkData.id]
 		this.engine.authRemoveChunkData(chunkData)
 	}

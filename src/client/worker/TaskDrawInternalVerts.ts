@@ -1,6 +1,6 @@
 import ChunkData from "../ChunkData"
-import * as WorkerManager from "../WorkerManager"
-import * as WorkerObligation from "../WorkerObligation"
+import * as WorkerManager from "./WorkerManager"
+import * as WorkerObligation from "./WorkerObligation"
 import v3 from "v3"
 import EngineChunkBuilder from "../engine/chunk/EngineChunkBuilder"
 
@@ -8,6 +8,9 @@ const TASK_TYPE_ID = "TaskDrawInternalVerts"
 
 export default {
 	id: TASK_TYPE_ID,
+	cancel(taskId: number) {
+		WorkerManager.cancelTask(taskId)
+	},
 	queue(
 		chunkData: ChunkData,
 		initialVertexArrays: Array<Float32Array>,
