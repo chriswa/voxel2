@@ -14,6 +14,7 @@ import Config from "../Config"
 import * as WorkerManager from "../worker/WorkerManager"
 import TaskDrawInternalVerts from "../worker/TaskDrawInternalVerts"
 import DebugChunkLogger from "../DebugChunkLogger"
+import EngineChunkVertexArrayPool from "./chunk/EngineChunkVertexArrayPool"
 
 const m4 = twgl.m4
 
@@ -71,13 +72,18 @@ export default class Engine {
 		const quadIdsByBlockAndSide = quadIdsByBlockAndSidePool.acquire()
 		if (<boolean>Config.chunkInternalWorkers) {
 
-			const initialVertexArrays = [] ;;; // TODO: if the main pool has an item in it, pass it along to the worker to use (to avoid unnecessary allocations)
+			const initialVertexArrays = [ EngineChunkVertexArrayPool.acquire() ] // just one
 
 			this.chunkDrawTaskIds[chunkData.id] = TaskDrawInternalVerts.queue(
 				chunkData, initialVertexArrays, quadIdsByBlockAndSide,
-				(quadCount, vertexArrays, quadIdsByBlockAndSide) => {
+				(quadCount, vertexArrays, quadIdsByBlockAndSide, unusedVertexArrays) => {
+					unusedVertexArrays.forEach(vertexArray => { EngineChunkVertexArrayPool.release(vertexArray) })
 					delete this.chunkDrawTaskIds[chunkData.id]
 					this.authAddChunkData_withInternalQuads(chunkData, quadCount, vertexArrays, quadIdsByBlockAndSide)
+				},
+				(cancelledQuadIdsByBlockAndSide, unusedVertexArrays) => {
+					unusedVertexArrays.forEach(vertexArray => { EngineChunkVertexArrayPool.release(vertexArray) })
+					quadIdsByBlockAndSidePool.release(cancelledQuadIdsByBlockAndSide)
 				}
 			)
 

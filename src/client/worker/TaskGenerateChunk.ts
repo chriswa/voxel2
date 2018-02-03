@@ -11,7 +11,7 @@ export default {
 	cancel(taskId: number) {
 		WorkerManager.cancelTask(taskId)
 	},
-	queue(chunkPos: v3, chunkData: ChunkData, onComplete: () => void) {
+	queue(chunkPos: v3, chunkData: ChunkData, onComplete: () => void, onCancelled: () => void) {
 		const chunkId = chunkPos.toString()
 		const taskId = WorkerManager.queueTask(
 			TASK_TYPE_ID,
@@ -26,10 +26,14 @@ export default {
 				]
 				return { requestPayload, transferableObjects }
 			},
-			(responsePayload: WorkerManager.WorkerPayload) => {
+			(completePayload: WorkerManager.WorkerPayload) => {
 				//if (!this.chunksToGenerate[chunkId]) { console.log(`cancelled!`); return } // if chunk generation was cancelled, stop now
-				chunkData.blocks = new Uint8Array(responsePayload.blockData)
+				chunkData.blocks = new Uint8Array(completePayload.blockData)
 				onComplete()
+			},
+			(cancelledPayload: WorkerManager.WorkerPayload) => {
+				chunkData.blocks = new Uint8Array(cancelledPayload.blockData)
+				onCancelled()
 			}
 		)
 		return taskId

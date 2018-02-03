@@ -15,7 +15,8 @@ export default {
 		chunkData: ChunkData,
 		initialVertexArrays: Array<Float32Array>,
 		quadIdsByBlockAndSide: Uint16Array,
-		onComplete: (quadCount: number, vertexArrays: Array<Float32Array>, quadIdsByBlockAndSide: Uint16Array) => void
+		onComplete: (quadCount: number, vertexArrays: Array<Float32Array>, quadIdsByBlockAndSide: Uint16Array, unusedVertexArrays: Array<Float32Array>) => void,
+		onCancelled: (quadIdsByBlockAndSide: Uint16Array, unusedVertexArrays: Array<Float32Array>) => void
 	) {
 		const taskId = WorkerManager.queueTask(
 			TASK_TYPE_ID,
@@ -32,15 +33,23 @@ export default {
 				]
 				return { requestPayload, transferableObjects }
 			},
-			(responsePayload: WorkerManager.WorkerPayload) => {
+			(completePayload: WorkerManager.WorkerPayload) => {
 
-				chunkData.blocks = new Uint8Array(responsePayload.blockData)
+				chunkData.blocks = new Uint8Array(completePayload.blockData)
 				onComplete(
-					<number>responsePayload.quadCount,
-					responsePayload.vertexArrays.map(buffer => new Float32Array(buffer)),
-					new Uint16Array(responsePayload.quadIdsByBlockAndSide)
+					<number>completePayload.quadCount,
+					completePayload.vertexArrays.map(buffer => new Float32Array(buffer)),
+					new Uint16Array(completePayload.quadIdsByBlockAndSide),
+					completePayload.unusedVertexArrays.map(buffer => new Float32Array(buffer))
 				)
 
+			},
+			(cancelledPayload: WorkerManager.WorkerPayload) => {
+				chunkData.blocks = new Uint8Array(cancelledPayload.blockData)
+				onCancelled(
+					new Uint16Array(cancelledPayload.quadIdsByBlockAndSide),
+					cancelledPayload.unusedVertexArrays.map(buffer => new Float32Array(buffer))
+				)
 			}
 		)
 		return taskId
@@ -54,17 +63,21 @@ export default {
 		// process request
 		const { quadCount, vertexArrays } = EngineChunkBuilder.drawInternalChunkQuads(blockData, quadIdsByBlockAndSide, initialVertexArrays)
 
+		const unusedVertexArrays = [] // TODO
+
 		// respond
 		const responsePayload: WorkerObligation.WorkerPayload = {
 			blockData: blockData.buffer,
 			quadCount,
 			vertexArrays: vertexArrays.map(arr => arr.buffer),
 			quadIdsByBlockAndSide: quadIdsByBlockAndSide.buffer,
+			unusedVertexArrays: unusedVertexArrays.map(arr => arr.buffer),
 		}
 		const transferableObjects: Array<any> = [
 			blockData.buffer,
 			quadIdsByBlockAndSide.buffer,
 			...(vertexArrays.map(arr => arr.buffer)),
+			...(unusedVertexArrays.map(arr => arr.buffer)),
 		]
 		responseCallback(responsePayload, transferableObjects)
 	},

@@ -80,6 +80,7 @@ type Task = {
 	cancelled?: boolean,
 	onStart: WorkerOnStart,
 	onComplete: WorkerOnComplete,
+	onCancelled: WorkerOnComplete,
 }
 
 let taskIdCounter: number = 0
@@ -96,10 +97,10 @@ export function init(workerControllers_: Array<WorkerController>) {
 	})
 }
 
-export function queueTask(taskType: string, onStart: WorkerOnStart, onComplete: WorkerOnComplete) {
+export function queueTask(taskType: string, onStart: WorkerOnStart, onComplete: WorkerOnComplete, onCancelled: WorkerOnComplete) {
 	taskIdCounter += 1
 	const taskId = taskIdCounter // unique taskId
-	const task: Task = { taskId, taskType, onStart, onComplete }
+	const task: Task = { taskId, taskType, onStart, onComplete, onCancelled }
 	queuedTasks.push(task)
 	processQueue()
 	return taskId
@@ -125,7 +126,10 @@ function startWorker(worker: WorkerController, task: Task) {
 		delete activeTasksByWorkerId[task.taskId]
 		inactiveWorkerControllers.push(worker)
 		processQueue() // now that this worker's free, assign another task to it if one is available!
-		if (!task.cancelled) {
+		if (task.cancelled) {
+			task.onCancelled(responsePayload)
+		}
+		else {
 			task.onComplete(responsePayload)
 		}
 	})

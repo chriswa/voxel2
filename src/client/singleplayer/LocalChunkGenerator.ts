@@ -43,6 +43,9 @@ export default class LocalChunkGenerator {
 				() => {
 					this.onChunkDataGenerated(chunkData)
 					delete this.chunksToGenerate[chunkId]
+				},
+				() => {
+					ChunkData.pool.release(chunkData)
 				}
 			)
 
