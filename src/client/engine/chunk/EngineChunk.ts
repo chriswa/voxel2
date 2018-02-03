@@ -17,7 +17,7 @@ export default class EngineChunk {
 	quadDirtyList: Array<number>
 	quadHoleList: Array<number>
 
-	constructor(chunkData: ChunkData, quadCount: number, initialVertexArrays: Array<Float32Array>, quadIdsByBlockAndSide: Uint16Array) {
+	constructor(chunkData: ChunkData, quadCount: number, initialVertexArrays: Array<geometrics.VertexArrayType>, quadIdsByBlockAndSide: Uint16Array) {
 		this.chunkData = chunkData
 		//console.log(`new EngineChunk ${this.id}`)
 		this.quadCount = quadCount
@@ -38,7 +38,7 @@ export default class EngineChunk {
 		this.quadHoleList = [] // quads which may be reused, but have already been zero'd out (dirty quads that did not get used)
 	}
 	addNewMesh() {
-		const newVertexArray = new Float32Array(EngineChunkVertexArrayPool.acquire())
+		const newVertexArray: geometrics.VertexArrayType = new Int32Array(EngineChunkVertexArrayPool.acquire())
 		this.meshes.push(new EngineChunkMesh(undefined, newVertexArray, 0))
 	}
 	destroy() {

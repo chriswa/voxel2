@@ -11,7 +11,7 @@ export default class EngineChunkMesh {
 	minDirtyQuad: number = Infinity
 	maxDirtyQuad: number = -Infinity
 
-	constructor(public vao: EngineChunkMeshVAO, public vertexArray: Float32Array, initialWriteCount: number = 0) {
+	constructor(public vao: EngineChunkMeshVAO, public vertexArray: geometrics.VertexArrayType, initialWriteCount: number = 0) {
 		this.vao = vao !== undefined ? vao : EngineChunkRenderer.acquireVAO()
 		if (initialWriteCount) {
 			//console.log(`initialWriteCount = ${initialWriteCount}`)

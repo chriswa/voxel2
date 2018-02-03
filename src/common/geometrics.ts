@@ -11,10 +11,12 @@ export const indicesPerFace   = 6
 
 export const maxVerts         = 64 * 1024 // this should be 64k
 export const maxQuadsPerChunk = maxVerts / uniqVertsPerFace
-export const maxQuadsPerMesh  = 1200
+export const maxQuadsPerMesh  = 2400
 
-export const vertexByteSize = 8
+export const vertexByteSize = 2
 export const quadVertexByteSize = vertexByteSize * 4
+
+export type VertexArrayType = Int32Array
 
 export function createIndexBufferTypedArray() {
 	const array = new Uint32Array(maxQuadsPerChunk * indicesPerFace)

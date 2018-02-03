@@ -1,6 +1,7 @@
 import ChunkData from "../ChunkData"
 import * as WorkerManager from "./WorkerManager"
 import * as WorkerObligation from "./WorkerObligation"
+import * as geometrics from "geometrics"
 import v3 from "v3"
 import EngineChunkBuilder from "../engine/chunk/EngineChunkBuilder"
 
@@ -13,10 +14,10 @@ export default {
 	},
 	queue(
 		chunkData: ChunkData,
-		initialVertexArrays: Array<Float32Array>,
+		initialVertexArrays: Array<geometrics.VertexArrayType>,
 		quadIdsByBlockAndSide: Uint16Array,
-		onComplete: (quadCount: number, vertexArrays: Array<Float32Array>, quadIdsByBlockAndSide: Uint16Array, unusedVertexArrays: Array<Float32Array>) => void,
-		onCancelled: (quadIdsByBlockAndSide: Uint16Array, unusedVertexArrays: Array<Float32Array>) => void
+		onComplete: (quadCount: number, vertexArrays: Array<geometrics.VertexArrayType>, quadIdsByBlockAndSide: Uint16Array, unusedVertexArrays: Array<geometrics.VertexArrayType>) => void,
+		onCancelled: (quadIdsByBlockAndSide: Uint16Array, unusedVertexArrays: Array<geometrics.VertexArrayType>) => void
 	) {
 		const taskId = WorkerManager.queueTask(
 			TASK_TYPE_ID,
@@ -38,9 +39,9 @@ export default {
 				chunkData.blocks = new Uint8Array(completePayload.blockData)
 				onComplete(
 					<number>completePayload.quadCount,
-					completePayload.vertexArrays.map(buffer => new Float32Array(buffer)),
+					completePayload.vertexArrays.map(buffer => new Int32Array(buffer)),
 					new Uint16Array(completePayload.quadIdsByBlockAndSide),
-					completePayload.unusedVertexArrays.map(buffer => new Float32Array(buffer))
+					completePayload.unusedVertexArrays.map(buffer => new Int32Array(buffer))
 				)
 
 			},
@@ -48,7 +49,7 @@ export default {
 				chunkData.blocks = new Uint8Array(cancelledPayload.blockData)
 				onCancelled(
 					new Uint16Array(cancelledPayload.quadIdsByBlockAndSide),
-					cancelledPayload.unusedVertexArrays.map(buffer => new Float32Array(buffer))
+					cancelledPayload.unusedVertexArrays.map(buffer => new Int32Array(buffer))
 				)
 			}
 		)
@@ -58,7 +59,7 @@ export default {
 		// get request
 		const blockData: Uint8Array = new Uint8Array(requestPayload.blockData)
 		const quadIdsByBlockAndSide: Uint16Array = new Uint16Array(requestPayload.quadIdsByBlockAndSide)
-		const initialVertexArrays: Array<Float32Array> = requestPayload.initialVertexArrays.map(buffer => new Float32Array(buffer))
+		const initialVertexArrays: Array<geometrics.VertexArrayType> = requestPayload.initialVertexArrays.map(buffer => new Int32Array(buffer))
 
 		// process request
 		const { quadCount, vertexArrays } = EngineChunkBuilder.drawInternalChunkQuads(blockData, quadIdsByBlockAndSide, initialVertexArrays)

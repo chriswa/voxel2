@@ -15,16 +15,7 @@ export default class EngineChunkMeshVAO {
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.glBuffer)
 		gl.bufferData(gl.ARRAY_BUFFER, geometrics.maxQuadsPerMesh * 4 * EngineChunkRenderer.vertexByteStride, gl.DYNAMIC_DRAW)
 
-		const bufferInfo = {
-			numElements: geometrics.maxVerts * geometrics.uniqVertsPerFace,
-			indices: EngineChunkRenderer.indexBuffer,
-			elementType: EngineChunkRenderer.indexBufferGlType,
-			attribs: {
-				a_position: { buffer: this.glBuffer, numComponents: 3, type: gl.FLOAT, stride: EngineChunkRenderer.vertexByteStride, offset: 0, },
-				a_texcoord: { buffer: this.glBuffer, numComponents: 2, type: gl.FLOAT, stride: EngineChunkRenderer.vertexByteStride, offset: 12, },
-				a_color: { buffer: this.glBuffer, numComponents: 3, type: gl.FLOAT, stride: EngineChunkRenderer.vertexByteStride, offset: 20, },
-			},
-		}
+		const bufferInfo = EngineChunkRenderer.createBufferInfo(this.glBuffer)
 
 		// yes, all this stuff really does need to be set for every buffer (unless I use ARB_vertex_attrib_binding)
 		this.vaoInfo = twgl.createVertexArrayInfo(gl, [EngineChunkRenderer.programInfo], bufferInfo)

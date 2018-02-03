@@ -1,5 +1,7 @@
 const canvas = <HTMLCanvasElement>document.getElementById("mainCanvas")
-const gl = <WebGL2RenderingContext>canvas.getContext("webgl2")
+const gl = <WebGL2RenderingContext>canvas.getContext("webgl2", {
+	antialias: false,
+})
 
 export default gl
 

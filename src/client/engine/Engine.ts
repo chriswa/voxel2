@@ -95,7 +95,7 @@ export default class Engine {
 			this.authAddChunkData_withInternalQuads(chunkData, quadCount, vertexArrays, quadIdsByBlockAndSide)
 		}
 	}
-	authAddChunkData_withInternalQuads(chunkData: ChunkData, quadCount: number, initialVertexArrays: Array<Float32Array>, quadIdsByBlockAndSide: Uint16Array) {
+	authAddChunkData_withInternalQuads(chunkData: ChunkData, quadCount: number, initialVertexArrays: Array<geometrics.VertexArrayType>, quadIdsByBlockAndSide: Uint16Array) {
 		DebugFrameLogger("Engine.authAddChunkData_withInternalQuads")
 		DebugChunkLogger(chunkData.pos, "Engine.authAddChunkData_withInternalQuads")
 

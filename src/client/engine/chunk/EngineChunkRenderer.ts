@@ -4,8 +4,9 @@ import * as twgl from "twgl.js"
 import Pool from "Pool"
 import EngineChunkMeshVAO from "./EngineChunkMeshVAO"
 
-const bytesPerFloat = 4
-const vertexByteStride = bytesPerFloat * (3 + 2 + 3) // 32 === 4 * ( position (3 floats) + texcoord (2 floats) + rgba8 (3 floats) )
+//const bytesPerFloat = 4
+//const vertexByteStride = bytesPerFloat * (3 + 2 + 1) // 32 === 4 * ( position (3 floats) + texcoord (2 floats) + rgba8 (3 floats) )
+const vertexByteStride = 4 * 2
 
 const packedAttribOrder = [
 	"a_position",
@@ -17,16 +18,29 @@ const vertexShaderSource = `#version 300 es
 	precision mediump float;
 
 	uniform mat4 u_worldViewProjection;
-	in vec4 a_position;
-	in vec2 a_texcoord;
-	in vec3 a_color;
+	//in vec4 a_position;
+	//in vec2 a_texcoord;
+	//in float a_color;
+	in ivec2 a_packed;
 	out vec2 v_texcoord;
-	out vec3 v_color;
+	out float v_color;
 
 	void main() {
-		gl_Position = u_worldViewProjection * a_position;
-		v_texcoord = a_texcoord;
-		v_color = a_color;
+		vec4 position = vec4(
+			float((a_packed[0] >> 0) & 0x3f),
+			float((a_packed[0] >> 6) & 0x3f),
+			float((a_packed[0] >> 12) & 0x3f),
+			1.
+		);
+		vec2 texcoord = vec2(
+			float((a_packed[1] >> 0) & 0x1f) / 16.,
+			float((a_packed[1] >> 5) & 0x1f) / 16.
+		);
+		float color = float((a_packed[0] >> 18) & 0x1f) / 16.;
+
+		gl_Position = u_worldViewProjection * position;
+		v_texcoord = texcoord;
+		v_color = color;
 	}`
 
 const fragmentShaderSource = `#version 300 es
@@ -34,11 +48,11 @@ const fragmentShaderSource = `#version 300 es
 
 	uniform sampler2D u_texture;
 	in vec2 v_texcoord;
-	in vec3 v_color;
+	in float v_color;
 	out vec4 fragColor;
 
 	void main() {
-		fragColor = texture(u_texture, v_texcoord) * vec4(v_color, 1.);
+		fragColor = texture(u_texture, v_texcoord) * vec4(v_color, v_color, v_color, 1.);
 	}`
 
 const indexBufferGlType = gl.UNSIGNED_SHORT
@@ -64,6 +78,20 @@ const EngineChunkRenderer = {
 	programInfo: twgl.createProgramInfo(gl, [vertexShaderSource, fragmentShaderSource], packedAttribOrder),
 	indexBuffer: createIndexBuffer(),
 	vaoPool: <Pool<EngineChunkMeshVAO>>new Pool(() => new EngineChunkMeshVAO()),
+
+	createBufferInfo(glBuffer: WebGLBuffer) {
+		return {
+			numElements: geometrics.maxVerts * geometrics.uniqVertsPerFace,
+			indices: this.indexBuffer,
+			elementType: this.indexBufferGlType,
+			attribs: {
+				a_packed: { buffer: glBuffer, numComponents: 2, type: gl.INT, stride: this.vertexByteStride, offset: 0, },
+				//a_position: { buffer: glBuffer, numComponents: 3, type: gl.FLOAT, stride: this.vertexByteStride, offset: 0, },
+				//a_texcoord: { buffer: glBuffer, numComponents: 2, type: gl.FLOAT, stride: this.vertexByteStride, offset: 12, },
+				//a_color: { buffer: glBuffer, numComponents: 1, type: gl.FLOAT, stride: this.vertexByteStride, offset: 20, },
+			},
+		}
+	},
 
 	acquireVAO() {
 		return this.vaoPool.acquire()

@@ -56,16 +56,16 @@ function calculateVertexColours(airBlockPos: BlockPos, side: geometrics.SideType
 class ChunkPrewriter {
 
 	quadCount: number
-	vertexArrays: Array<Float32Array>
-	currentVertexArray: Float32Array
+	vertexArrays: Array<geometrics.VertexArrayType>
+	currentVertexArray: geometrics.VertexArrayType
 
-	constructor(private blockData: Uint8Array, private quadIdsByBlockAndSide: Uint16Array, private vertexArrayPool: Pool<Float32Array>) {
+	constructor(private blockData: Uint8Array, private quadIdsByBlockAndSide: Uint16Array, private vertexArrayPool: Pool<geometrics.VertexArrayType>) {
 		this.quadCount = 0
 		this.vertexArrays = []
 		this.currentVertexArray = undefined
 	}
 	addVertexArray() {
-		var vertexArray = new Float32Array(this.vertexArrayPool.acquire())
+		var vertexArray: geometrics.VertexArrayType = new Int32Array(this.vertexArrayPool.acquire())
 		this.vertexArrays.push(vertexArray)
 		return vertexArray
 	}
@@ -119,8 +119,8 @@ export default {
 	drawInternalChunkQuads(
 		blockData: Uint8Array,
 		quadIdsByBlockAndSide: Uint16Array,
-		reusableVertexArrays: Array<Float32Array> = []
-	): {quadCount: number, vertexArrays: Array<Float32Array>} {
+		reusableVertexArrays: Array<geometrics.VertexArrayType> = []
+	): {quadCount: number, vertexArrays: Array<geometrics.VertexArrayType>} {
 
 		const vertexArrayPool = EngineChunkVertexArrayPool.createPrefilledPool(reusableVertexArrays)
 

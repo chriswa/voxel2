@@ -1,20 +1,20 @@
 import * as geometrics from "geometrics"
 import Pool from "Pool"
 
-function createPool(): Pool<Float32Array> {
-	//return new Pool(() => new Float32Array(geometrics.maxQuadsPerMesh * geometrics.quadVertexByteSize).buffer)
-	return new Pool(() => new Float32Array(geometrics.maxQuadsPerMesh * geometrics.quadVertexByteSize))
+function createPool(): Pool<geometrics.VertexArrayType> {
+	//return new Pool(() => new geometrics.VertexArrayType(geometrics.maxQuadsPerMesh * geometrics.quadVertexByteSize).buffer)
+	return new Pool(() => new Int32Array(geometrics.maxQuadsPerMesh * geometrics.quadVertexByteSize))
 }
 
 export default {
 	mainPool: createPool(),
-	acquire(): Float32Array {
+	acquire(): geometrics.VertexArrayType {
 		return this.mainPool.acquire()
 	},
-	release(vertexArray: Float32Array) {
+	release(vertexArray: geometrics.VertexArrayType) {
 		this.mainPool.release(vertexArray)
 	},
-	createPrefilledPool(existingItems: Array<Float32Array>): Pool<Float32Array> {
+	createPrefilledPool(existingItems: Array<geometrics.VertexArrayType>): Pool<geometrics.VertexArrayType> {
 		const pool = createPool()
 		pool.items = existingItems
 		return pool
