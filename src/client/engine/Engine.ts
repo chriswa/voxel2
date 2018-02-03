@@ -36,7 +36,6 @@ export default class Engine {
 	chunks: { [key: string]: EngineChunk }
 	chunkDrawTaskIds: { [key: string]: number }
 	playerInput: PlayerInput
-	debugHud: DebugHud
 
 	constructor(authority: LocalAuthority) {
 		this.authority = authority
@@ -47,7 +46,7 @@ export default class Engine {
 		this.chunkDrawTaskIds = {}
 		this.playerInput = new PlayerInput(event => { this.onPlayerInputClick(event) })
 
-		this.debugHud = new DebugHud()
+		DebugHud.init()
 
 		gl.enable(gl.DEPTH_TEST)
 		gl.enable(gl.CULL_FACE)
@@ -140,7 +139,8 @@ export default class Engine {
 	authStart() {
 		this.started = true
 	}
-	authOnFrame(_time: number) {
+	authOnFrame(time: number) {
+		DebugHud.frameTick(time)
 		// TODO: if started, do player controls including gravity, and send current position to this.authority.simUpdatePlayerPos()
 		// TODO: also call any other this.authority.sim* methods depending on player input
 
@@ -162,7 +162,7 @@ export default class Engine {
 		// forward.multiplyScalar(0.5)
 		// this.playerPos.add(forward)
 
-		const speed = Config.speed
+		const speed = <number>Config.speed
 
 		// right
 		this.playerPos.a[0] += rightInput * playerRotationMatrix[0] * speed
@@ -183,7 +183,7 @@ export default class Engine {
 
 		this.render(playerRotationMatrix)
 
-		this.debugHud.updatePlayer(this.playerPos, this.playerRot)
+		DebugHud.updatePlayer(this.playerPos, this.playerRot)
 	}
 	render(playerRotationMatrix: Array<number>) {
 		// handle resized browser window
@@ -216,13 +216,14 @@ export default class Engine {
 		const worldViewProjectionMatrix = m4.identity()
 
 		let renderBudget = 1000 // TODO: this is a totally arbitrary number
-		_.each(this.chunks, chunk => {
+		for (let chunkId in this.chunks) {
+			let chunk = this.chunks[chunkId]
 			m4.translation(chunk.worldPos.a, worldViewProjectionMatrix)
 			//m4.translation(chunk.worldPos.clone().multiplyScalar(1.001).a, worldViewProjectionMatrix) // VISIBLE GAP (and accumulated errors)
 			m4.multiply(viewProjectionMatrix, worldViewProjectionMatrix, worldViewProjectionMatrix)
 			EngineChunkRenderer.setWorldViewProjectionMatrix(worldViewProjectionMatrix)
 
 			renderBudget = chunk.renderStep(renderBudget)
-		})
+		}
 	}
 }
