@@ -61,6 +61,7 @@ export default class LocalAuthority {
 		//}, 10000)
 	}
 	onFrame(time: number) {
+		this.chunkGenerator.onFrame()
 		this.engine.authOnFrame(time)
 	}
 

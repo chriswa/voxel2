@@ -19,7 +19,7 @@ export default new class DebugHud {
 		this.div = document.createElement("div")
 		this.div.style.position = "absolute"
 		this.div.style.top = "0"
-		this.div.style.left = "0"
+		this.div.style.left = "80px"
 		this.div.style.color = "white"
 		this.div.style.padding = "2px"
 		this.div.style.backgroundColor = "rgba(0, 0, 0, 0.5)"

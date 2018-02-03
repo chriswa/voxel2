@@ -18,9 +18,9 @@ window["dclFar"] = function (chunkList: any, minDist = 0) {
 }
 
 export default function(chunkPos: v3, message: string) {
-	const chunkId = chunkPos.toString()
-	if (!dcl[chunkId]) {
-		dcl[chunkId] = []
-	}
-	dcl[chunkId].push(message)
+	//const chunkId = chunkPos.toString()
+	//if (!dcl[chunkId]) {
+	//	dcl[chunkId] = []
+	//}
+	//dcl[chunkId].push(message)
 }

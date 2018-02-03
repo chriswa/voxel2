@@ -14,6 +14,7 @@ import Config from "../Config"
 import * as WorkerManager from "../worker/WorkerManager"
 import TaskDrawInternalVerts from "../worker/TaskDrawInternalVerts"
 import DebugChunkLogger from "../DebugChunkLogger"
+import DebugFrameLogger from "../DebugFrameLogger"
 import EngineChunkVertexArrayPool from "./chunk/EngineChunkVertexArrayPool"
 
 const m4 = twgl.m4
@@ -67,6 +68,7 @@ export default class Engine {
 		this.playerInput.heading = newRot.y
 	}
 	authAddChunkData(chunkData: ChunkData) {
+		DebugFrameLogger("Engine.authAddChunkData")
 		DebugChunkLogger(chunkData.pos, "Engine.authAddChunkData")
 
 		const quadIdsByBlockAndSide = quadIdsByBlockAndSidePool.acquire()
@@ -94,6 +96,7 @@ export default class Engine {
 		}
 	}
 	authAddChunkData_withInternalQuads(chunkData: ChunkData, quadCount: number, initialVertexArrays: Array<Float32Array>, quadIdsByBlockAndSide: Uint16Array) {
+		DebugFrameLogger("Engine.authAddChunkData_withInternalQuads")
 		DebugChunkLogger(chunkData.pos, "Engine.authAddChunkData_withInternalQuads")
 
 		// create our chunk object

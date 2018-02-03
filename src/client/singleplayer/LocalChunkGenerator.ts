@@ -5,31 +5,45 @@ import * as WorkerManager from "../worker/WorkerManager"
 import Config from "../Config"
 import TaskGenerateChunk from "../worker/TaskGenerateChunk"
 import DebugChunkLogger from "../DebugChunkLogger"
+import DebugFrameLogger from "../DebugFrameLogger"
 
 export default class LocalChunkGenerator {
 
-	chunksToGenerate: { [key: string]: number }
+	queue: { [key: string]: v3 }
+	tasks: { [key: string]: number }
 
 	constructor(private onChunkDataGenerated: (chunkData: ChunkData) => void) {
-		this.chunksToGenerate = {}
+		this.queue = {}
+		this.tasks = {}
 	}
 	queueChunkGeneration(chunkPos: v3) {
 		DebugChunkLogger(chunkPos, "LocalChunkGenerator.queueChunkGeneration")
 		const chunkId = chunkPos.toString()
-		if (this.chunksToGenerate[chunkId]) { return } // already generating this chunk!
-		this.chunksToGenerate[chunkId] = -1 // it's in the queue
-		this.generateChunk(chunkPos)
+		if (this.queue[chunkId] || this.tasks[chunkId]) { return } // already generating this chunk!
+		this.queue[chunkId] = chunkPos
 	}
 	cancelChunkGeneration(chunkPos: v3) {
 		DebugChunkLogger(chunkPos, "LocalChunkGenerator.cancelChunkGeneration")
 		const chunkId = chunkPos.toString()
-		const taskId = this.chunksToGenerate[chunkId]
-		if (taskId > 0) {
+		const taskId = this.tasks[chunkId]
+		if (taskId) {
 			TaskGenerateChunk.cancel(taskId)
+			delete this.tasks[chunkId]
 		}
-		delete this.chunksToGenerate[chunkId]
+		else if (this.queue[chunkId]) {
+			delete this.queue[chunkId]
+		}
+	}
+	onFrame() {
+		let chunkPos
+		for (var chunkId in this.queue) { // NOT A LOOP!
+			chunkPos = this.queue[chunkId]
+			this.generateChunk(chunkPos)
+			break
+		}
 	}
 	generateChunk(chunkPos: v3) {
+		DebugFrameLogger("LocalChunkGenerator.generateChunk")
 		DebugChunkLogger(chunkPos, "LocalChunkGenerator.generateChunk")
 		const chunkData = ChunkData.pool.acquire() // n.b. chunkData may contain old data, so make sure to set everything!
 		chunkData.setChunkPos(chunkPos)
@@ -37,23 +51,25 @@ export default class LocalChunkGenerator {
 		const chunkId = chunkPos.toString()
 
 		if (<boolean>Config.chunkGenWorkers) {
+			delete this.queue[chunkId]
 			
-			this.chunksToGenerate[chunkId] = TaskGenerateChunk.queue(
+			this.tasks[chunkId] = TaskGenerateChunk.queue(
 				chunkPos, chunkData,
 				() => {
 					this.onChunkDataGenerated(chunkData)
-					delete this.chunksToGenerate[chunkId]
+					delete this.tasks[chunkId]
 				},
 				() => {
 					ChunkData.pool.release(chunkData)
 				}
 			)
 
+
 		}
 		else {
 			ChunkGeneration.generateChunk(chunkPos, chunkData.blocks)
 			this.onChunkDataGenerated(chunkData)
-			delete this.chunksToGenerate[chunkId]
+			delete this.queue[chunkId]
 		}
 	}
 }

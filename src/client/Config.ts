@@ -9,6 +9,7 @@ const Config: RecursiveDict = {
 	chunkRange: 5,
 	chunkLoading: true,
 	speed: 1,
+	slowFrame: 30,
 	rememberPlayerTransform: true,
 	foo: {
 		bar: "baaz",

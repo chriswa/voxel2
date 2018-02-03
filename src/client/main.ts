@@ -1,5 +1,6 @@
 import LocalAuthority from "./singleplayer/LocalAuthority"
 import WorkerOverseer from "./worker/WorkerOverseer"
+import { onFrame as DebugFrameLogger_onFrame } from "./DebugFrameLogger"
 
 // support browser gl debugging tool "Spector" capturing from very start of script execution
 // http://www.realtimerendering.com/blog/debugging-webgl-with-spectorjs/
@@ -25,6 +26,7 @@ global["v3"] = v3
 // main loop
 function onFrame(time: number) {
 	authority.onFrame(time)
+	DebugFrameLogger_onFrame(time)
 	requestAnimationFrame(onFrame)
 }
 requestAnimationFrame(onFrame)
