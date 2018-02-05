@@ -120,7 +120,11 @@ export default {
 		blockData: Uint8Array,
 		quadIdsByBlockAndSide: Uint16Array,
 		reusableVertexArrays: Array<geometrics.VertexArrayType> = []
-	): {quadCount: number, vertexArrays: Array<geometrics.VertexArrayType>} {
+	): {
+		quadCount: number,
+		vertexArrays: Array<geometrics.VertexArrayType>,
+		unusedVertexArrays: Array<geometrics.VertexArrayType>,
+	} {
 
 		const vertexArrayPool = EngineChunkVertexArrayPool.createPrefilledPool(reusableVertexArrays)
 
@@ -128,8 +132,9 @@ export default {
 		prewriter.drawInternalChunkQuads()
 		const quadCount = prewriter.quadCount
 		const vertexArrays = prewriter.vertexArrays
+		const unusedVertexArrays = vertexArrayPool.items
 
-		return { quadCount, vertexArrays }
+		return { quadCount, vertexArrays, unusedVertexArrays }
 	},
 
 	unstitchChunk(chunk: EngineChunk, side: geometrics.SideType) {

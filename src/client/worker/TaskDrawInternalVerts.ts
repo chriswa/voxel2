@@ -62,9 +62,7 @@ export default {
 		const initialVertexArrays: Array<geometrics.VertexArrayType> = requestPayload.initialVertexArrays.map(buffer => new Int32Array(buffer))
 
 		// process request
-		const { quadCount, vertexArrays } = EngineChunkBuilder.drawInternalChunkQuads(blockData, quadIdsByBlockAndSide, initialVertexArrays)
-
-		const unusedVertexArrays = [] // TODO
+		const { quadCount, vertexArrays, unusedVertexArrays } = EngineChunkBuilder.drawInternalChunkQuads(blockData, quadIdsByBlockAndSide, initialVertexArrays)
 
 		// respond
 		const responsePayload: WorkerObligation.WorkerPayload = {

@@ -91,7 +91,8 @@ export default class Engine {
 
 		}
 		else {
-			const { quadCount, vertexArrays } = EngineChunkBuilder.drawInternalChunkQuads(chunkData.blocks, quadIdsByBlockAndSide)
+			const { quadCount, vertexArrays, unusedVertexArrays } = EngineChunkBuilder.drawInternalChunkQuads(chunkData.blocks, quadIdsByBlockAndSide)
+			unusedVertexArrays.forEach(vertexArray => { EngineChunkVertexArrayPool.release(vertexArray) })
 			this.authAddChunkData_withInternalQuads(chunkData, quadCount, vertexArrays, quadIdsByBlockAndSide)
 		}
 	}

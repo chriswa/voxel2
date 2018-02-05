@@ -9,18 +9,13 @@ import EngineChunkMeshVAO from "./EngineChunkMeshVAO"
 const vertexByteStride = 4 * 2
 
 const packedAttribOrder = [
-	"a_position",
-	"a_texcoord",
-	"a_color",
+	"a_packed",
 ]
 
 const vertexShaderSource = `#version 300 es
 	precision mediump float;
 
 	uniform mat4 u_worldViewProjection;
-	//in vec4 a_position;
-	//in vec2 a_texcoord;
-	//in float a_color;
 	in ivec2 a_packed;
 	out vec2 v_texcoord;
 	out float v_color;
