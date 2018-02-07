@@ -96,7 +96,7 @@ export default class LocalAuthority {
 
 	loadChunk(chunkPos: v3) {
 		DebugChunkLogger(chunkPos, "LocalAuthority.loadChunk")
-		this.chunkGenerator.queueChunkGeneration(chunkPos) // this will call this.onChunkDataGenerated asyncronously
+		this.chunkGenerator.queueChunkGeneration(chunkPos) // this will call this.onChunkDataGenerated asynchronously
 	}
 	unloadChunk(chunkPos: v3) {
 		DebugChunkLogger(chunkPos, "LocalAuthority.unloadChunk")
@@ -115,7 +115,7 @@ export default class LocalAuthority {
 	onChunkRemoved(chunkData: ChunkData) {
 		DebugChunkLogger(chunkData.pos, "LocalAuthority.onChunkRemoved")
 		delete this.chunks[chunkData.id]
-		this.engine.authRemoveChunkData(chunkData)
+		this.engine.authRemoveChunkData(chunkData) // Engine is responsible for releasing chunkData to its pool
 	}
 
 	// "engine" functions are called by Engine to provide user interaction information

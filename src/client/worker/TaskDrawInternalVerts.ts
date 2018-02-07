@@ -4,6 +4,8 @@ import * as WorkerObligation from "./WorkerObligation"
 import * as geometrics from "geometrics"
 import v3 from "v3"
 import EngineChunkBuilder from "../engine/chunk/EngineChunkBuilder"
+import EngineChunkVertexArrayPool from "../engine/chunk/EngineChunkVertexArrayPool"
+import Pool from "Pool"
 
 const TASK_TYPE_ID = "TaskDrawInternalVerts"
 
@@ -14,14 +16,16 @@ export default {
 	},
 	queue(
 		chunkData: ChunkData,
-		initialVertexArrays: Array<geometrics.VertexArrayType>,
-		quadIdsByBlockAndSide: Uint16Array,
-		onComplete: (quadCount: number, vertexArrays: Array<geometrics.VertexArrayType>, quadIdsByBlockAndSide: Uint16Array, unusedVertexArrays: Array<geometrics.VertexArrayType>) => void,
-		onCancelled: (quadIdsByBlockAndSide: Uint16Array, unusedVertexArrays: Array<geometrics.VertexArrayType>) => void
+		quadIdsByBlockAndSidePool: Pool<Uint16Array>,
+		onComplete: (quadCount: number, vertexArrays: Array<geometrics.VertexArrayType>, quadIdsByBlockAndSide: Uint16Array) => void
 	) {
 		const taskId = WorkerManager.queueTask(
 			TASK_TYPE_ID,
 			() => {
+
+				const quadIdsByBlockAndSide = quadIdsByBlockAndSidePool.acquire()
+				const initialVertexArrays = [ EngineChunkVertexArrayPool.acquire() ]
+
 				const requestPayload = {
 					blockData: chunkData.blocks.buffer,
 					quadIdsByBlockAndSide: quadIdsByBlockAndSide.buffer,
@@ -40,17 +44,18 @@ export default {
 				onComplete(
 					<number>completePayload.quadCount,
 					completePayload.vertexArrays.map(buffer => new Int32Array(buffer)),
-					new Uint16Array(completePayload.quadIdsByBlockAndSide),
-					completePayload.unusedVertexArrays.map(buffer => new Int32Array(buffer))
+					new Uint16Array(completePayload.quadIdsByBlockAndSide)
 				)
 
 			},
 			(cancelledPayload: WorkerManager.WorkerPayload) => {
 				chunkData.blocks = new Uint8Array(cancelledPayload.blockData)
-				onCancelled(
-					new Uint16Array(cancelledPayload.quadIdsByBlockAndSide),
-					cancelledPayload.unusedVertexArrays.map(buffer => new Int32Array(buffer))
-				)
+				ChunkData.pool.release(chunkData) // the only reason this task is cancelled is if we're unloading the chunk
+
+				const cancelledQuadIdsByBlockAndSide = new Uint16Array(cancelledPayload.quadIdsByBlockAndSide)
+				const unusedVertexArrays = cancelledPayload.unusedVertexArrays.map(buffer => new Int32Array(buffer))
+				unusedVertexArrays.forEach(vertexArray => { EngineChunkVertexArrayPool.release(vertexArray) })
+				quadIdsByBlockAndSidePool.release(cancelledQuadIdsByBlockAndSide)
 			}
 		)
 		return taskId

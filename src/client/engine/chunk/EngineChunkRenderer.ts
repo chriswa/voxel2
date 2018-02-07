@@ -72,7 +72,9 @@ const EngineChunkRenderer = {
 	texture: twgl.createTexture(gl, { src: "minecraft15.png", mag: gl.NEAREST, min: gl.NEAREST, level: 0, auto: false }),
 	programInfo: twgl.createProgramInfo(gl, [vertexShaderSource, fragmentShaderSource], packedAttribOrder),
 	indexBuffer: createIndexBuffer(),
-	vaoPool: <Pool<EngineChunkMeshVAO>>new Pool(() => new EngineChunkMeshVAO()),
+	vaoPool: <Pool<EngineChunkMeshVAO>>new Pool(() => {
+		return new EngineChunkMeshVAO()
+	}),
 
 	createBufferInfo(glBuffer: WebGLBuffer) {
 		return {

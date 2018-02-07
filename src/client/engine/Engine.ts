@@ -8,7 +8,7 @@ import v3 from "v3"
 import * as twgl from "twgl.js"
 import PlayerInput from "./PlayerInput"
 import LocalAuthority from "../singleplayer/LocalAuthority"
-import ChunkData from "client/ChunkData"
+import ChunkData from "../ChunkData"
 import DebugHud from "./DebugHud"
 import Config from "../Config"
 import * as WorkerManager from "../worker/WorkerManager"
@@ -20,8 +20,12 @@ import EngineChunkVertexArrayPool from "./chunk/EngineChunkVertexArrayPool"
 const m4 = twgl.m4
 
 const quadIdsByBlockAndSidePool = new Pool(
-	() => new Uint16Array(geometrics.CHUNK_SIZE_CUBED * geometrics.facesPerCube),
-	item => item.fill(0)
+	() => {
+		return new Uint16Array(geometrics.CHUNK_SIZE_CUBED * geometrics.facesPerCube)
+	},
+	(item) => {
+		item.fill(0)
+	}
 )
 
 const projectionMatrix = m4.identity() // set below
@@ -71,26 +75,19 @@ export default class Engine {
 		DebugFrameLogger("Engine.authAddChunkData")
 		DebugChunkLogger(chunkData.pos, "Engine.authAddChunkData")
 
-		const quadIdsByBlockAndSide = quadIdsByBlockAndSidePool.acquire()
 		if (<boolean>Config.chunkInternalWorkers) {
 
-			const initialVertexArrays = [ EngineChunkVertexArrayPool.acquire() ] // just one
-
-			this.chunkDrawTaskIds[chunkData.id] = TaskDrawInternalVerts.queue(
-				chunkData, initialVertexArrays, quadIdsByBlockAndSide,
-				(quadCount, vertexArrays, quadIdsByBlockAndSide, unusedVertexArrays) => {
-					unusedVertexArrays.forEach(vertexArray => { EngineChunkVertexArrayPool.release(vertexArray) })
+			this.chunkDrawTaskIds[chunkData.id] = TaskDrawInternalVerts.queue( // n.b. this task will release chunkData if cancelled
+				chunkData, quadIdsByBlockAndSidePool,
+				(quadCount, vertexArrays, quadIdsByBlockAndSide) => {
 					delete this.chunkDrawTaskIds[chunkData.id]
 					this.authAddChunkData_withInternalQuads(chunkData, quadCount, vertexArrays, quadIdsByBlockAndSide)
-				},
-				(cancelledQuadIdsByBlockAndSide, unusedVertexArrays) => {
-					unusedVertexArrays.forEach(vertexArray => { EngineChunkVertexArrayPool.release(vertexArray) })
-					quadIdsByBlockAndSidePool.release(cancelledQuadIdsByBlockAndSide)
 				}
 			)
 
 		}
 		else {
+			const quadIdsByBlockAndSide = quadIdsByBlockAndSidePool.acquire()
 			const { quadCount, vertexArrays, unusedVertexArrays } = EngineChunkBuilder.drawInternalChunkQuads(chunkData.blocks, quadIdsByBlockAndSide)
 			unusedVertexArrays.forEach(vertexArray => { EngineChunkVertexArrayPool.release(vertexArray) })
 			this.authAddChunkData_withInternalQuads(chunkData, quadCount, vertexArrays, quadIdsByBlockAndSide)
@@ -119,7 +116,7 @@ export default class Engine {
 	}
 	authRemoveChunkData(chunkData: ChunkData) {
 		DebugChunkLogger(chunkData.pos, "Engine.authRemoveChunkData")
-		
+
 		const chunk = this.chunks[chunkData.id]
 		if (chunk) {
 			geometrics.Sides.each(side => {
@@ -130,6 +127,7 @@ export default class Engine {
 				}
 			})
 			quadIdsByBlockAndSidePool.release(chunk.quadIdsByBlockAndSide)
+			ChunkData.pool.release(chunkData)
 			chunk.destroy()
 			delete this.chunks[chunkData.id]
 		}

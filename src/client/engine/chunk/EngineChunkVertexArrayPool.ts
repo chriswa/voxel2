@@ -2,8 +2,9 @@ import * as geometrics from "geometrics"
 import Pool from "Pool"
 
 function createPool(): Pool<geometrics.VertexArrayType> {
-	//return new Pool(() => new geometrics.VertexArrayType(geometrics.maxQuadsPerMesh * geometrics.quadVertexByteSize).buffer)
-	return new Pool(() => new Int32Array(geometrics.maxQuadsPerMesh * geometrics.quadVertexByteSize))
+	return new Pool(() => {
+		return new Int32Array(geometrics.maxQuadsPerMesh * geometrics.quadVertexByteSize)
+	})
 }
 
 export default {

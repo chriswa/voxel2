@@ -11,12 +11,17 @@ export default {
 	cancel(taskId: number) {
 		WorkerManager.cancelTask(taskId)
 	},
-	queue(chunkPos: v3, chunkData: ChunkData, onComplete: () => void, onCancelled: () => void) {
+	queue(chunkPos: v3, onComplete: (chunkData: ChunkData) => void) {
 		const chunkId = chunkPos.toString()
+		let chunkData
+
 		const taskId = WorkerManager.queueTask(
 			TASK_TYPE_ID,
 			() => {
-				//if (!this.chunksToGenerate[chunkId]) { console.log(`cancelled!`); return undefined } // if chunk generation was cancelled, stop now
+				// this allocation is deferred until the task starts, because the onCancelled handler (below) doesn't get called if the task is cancelled before it starts)
+				chunkData = ChunkData.pool.acquire() // n.b. chunkData may contain old data, so make sure to set everything!
+				chunkData.setChunkPos(chunkPos)
+
 				const requestPayload = {
 					chunkPos: [chunkPos.a[0], chunkPos.a[1], chunkPos.a[2]],
 					blockData: chunkData.blocks.buffer,
@@ -27,13 +32,12 @@ export default {
 				return { requestPayload, transferableObjects }
 			},
 			(completePayload: WorkerManager.WorkerPayload) => {
-				//if (!this.chunksToGenerate[chunkId]) { console.log(`cancelled!`); return } // if chunk generation was cancelled, stop now
 				chunkData.blocks = new Uint8Array(completePayload.blockData)
-				onComplete()
+				onComplete(chunkData)
 			},
 			(cancelledPayload: WorkerManager.WorkerPayload) => {
 				chunkData.blocks = new Uint8Array(cancelledPayload.blockData)
-				onCancelled()
+				ChunkData.pool.release(chunkData)
 			}
 		)
 		return taskId

@@ -18,7 +18,9 @@ export default class ChunkData {
 		this.id = chunkPos.toString()
 	}
 
-	static pool: Pool<ChunkData> = new Pool(() => new ChunkData(), () => { })
+	static pool: Pool<ChunkData> = new Pool(() => {
+		return new ChunkData()
+	})
 }
 
 //export const pool = new Pool(() => new ChunkData(), () => {})

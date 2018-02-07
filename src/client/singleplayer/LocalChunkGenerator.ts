@@ -45,8 +45,6 @@ export default class LocalChunkGenerator {
 	generateChunk(chunkPos: v3) {
 		DebugFrameLogger("LocalChunkGenerator.generateChunk")
 		DebugChunkLogger(chunkPos, "LocalChunkGenerator.generateChunk")
-		const chunkData = ChunkData.pool.acquire() // n.b. chunkData may contain old data, so make sure to set everything!
-		chunkData.setChunkPos(chunkPos)
 
 		const chunkId = chunkPos.toString()
 
@@ -54,19 +52,18 @@ export default class LocalChunkGenerator {
 			delete this.queue[chunkId]
 			
 			this.tasks[chunkId] = TaskGenerateChunk.queue(
-				chunkPos, chunkData,
-				() => {
+				chunkPos,
+				(chunkData) => {
 					this.onChunkDataGenerated(chunkData)
 					delete this.tasks[chunkId]
-				},
-				() => {
-					ChunkData.pool.release(chunkData)
 				}
 			)
 
 
 		}
 		else {
+			const chunkData = ChunkData.pool.acquire() // n.b. chunkData may contain old data, so make sure to set everything!
+			chunkData.setChunkPos(chunkPos)
 			ChunkGeneration.generateChunk(chunkPos, chunkData.blocks)
 			this.onChunkDataGenerated(chunkData)
 			delete this.queue[chunkId]
