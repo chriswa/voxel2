@@ -6,6 +6,7 @@ import v3 from "v3"
 import ChunkData from "../ChunkData"
 import Config from "../Config"
 import DebugChunkLogger from "../DebugChunkLogger"
+import DebugHud from "../engine/DebugHud"
 
 const chunkLoadRadius = <number>Config.chunkRange
 
@@ -63,6 +64,7 @@ export default class LocalAuthority {
 	onFrame(time: number) {
 		this.chunkGenerator.onFrame()
 		this.engine.authOnFrame(time)
+		DebugHud.updateChunks(Object.values(this.chunks).length, Object.values(this.engine.chunks).length)
 	}
 
 	updatePlayerPos(newPlayerPos: v3, newPlayerRot: v3) {
@@ -80,17 +82,15 @@ export default class LocalAuthority {
 
 			// load and unload chunks as needed
 			const chunkPos = geometrics.worldPosToChunkPos(newPlayerPos)
-			this.voxelsInMovingSphere.update(chunkPos)
-			if (this.voxelsInMovingSphere.added.length) {
-				console.log(`%cLocalAuthority: new chunk center is ${chunkPos.id}`, 'color: teal;')
-			}
-			this.voxelsInMovingSphere.added.forEach(chunkPos => {
-				this.loadChunk(chunkPos)
-			})
-			this.voxelsInMovingSphere.removed.forEach(chunkPos => {
-				this.unloadChunk(chunkPos)
-			})
-
+			this.voxelsInMovingSphere.update(
+				chunkPos,
+				(chunkPos) => {
+					this.loadChunk(chunkPos)
+				},
+				(chunkPos) => {
+					this.unloadChunk(chunkPos)
+				}
+			)
 		}
 	}
 

@@ -41,6 +41,12 @@ export default {
 			(completePayload: WorkerManager.WorkerPayload) => {
 
 				chunkData.blocks = new Uint8Array(completePayload.blockData)
+
+				const unusedVertexArrays = completePayload.unusedVertexArrays.map(buffer => new Int32Array(buffer))
+				unusedVertexArrays.forEach(vertexArray => {
+					EngineChunkVertexArrayPool.release(vertexArray)
+				})
+
 				onComplete(
 					<number>completePayload.quadCount,
 					completePayload.vertexArrays.map(buffer => new Int32Array(buffer)),
@@ -54,7 +60,13 @@ export default {
 
 				const cancelledQuadIdsByBlockAndSide = new Uint16Array(cancelledPayload.quadIdsByBlockAndSide)
 				const unusedVertexArrays = cancelledPayload.unusedVertexArrays.map(buffer => new Int32Array(buffer))
-				unusedVertexArrays.forEach(vertexArray => { EngineChunkVertexArrayPool.release(vertexArray) })
+				unusedVertexArrays.forEach(vertexArray => {
+					EngineChunkVertexArrayPool.release(vertexArray)
+				})
+				const vertexArrays = cancelledPayload.vertexArrays.map(buffer => new Int32Array(buffer))
+				vertexArrays.forEach(vertexArray => {
+					EngineChunkVertexArrayPool.release(vertexArray)
+				})
 				quadIdsByBlockAndSidePool.release(cancelledQuadIdsByBlockAndSide)
 			}
 		)

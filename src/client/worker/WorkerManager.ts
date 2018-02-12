@@ -1,4 +1,5 @@
 import * as _ from "lodash"
+import DebugFrameLogger from "../DebugFrameLogger"
 
 
 /*
@@ -116,6 +117,8 @@ function processQueue() {
 }
 
 function startWorker(worker: WorkerController, task: Task) {
+	DebugFrameLogger("WorkerManager.startWorker")
+
 	const startResponse = task.onStart()
 	if (!startResponse) { return } // task was cancelled by onStart
 	const { requestPayload, transferableObjects } = startResponse
@@ -123,6 +126,7 @@ function startWorker(worker: WorkerController, task: Task) {
 	activeTasksByWorkerId[task.taskId] = task
 
 	worker.start(task.taskId, task.taskType, requestPayload, transferableObjects, (responsePayload: WorkerPayload) => {
+		DebugFrameLogger("WorkerManager worker response")
 		delete activeTasksByWorkerId[task.taskId]
 		inactiveWorkerControllers.push(worker)
 		processQueue() // now that this worker's free, assign another task to it if one is available!

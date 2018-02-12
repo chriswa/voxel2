@@ -20,7 +20,7 @@ export default class LocalChunkGenerator {
 		DebugChunkLogger(chunkPos, "LocalChunkGenerator.queueChunkGeneration")
 		const chunkId = chunkPos.toString()
 		if (this.queue[chunkId] || this.tasks[chunkId]) { return } // already generating this chunk!
-		this.queue[chunkId] = chunkPos
+		this.queue[chunkId] = chunkPos.clone()
 	}
 	cancelChunkGeneration(chunkPos: v3) {
 		DebugChunkLogger(chunkPos, "LocalChunkGenerator.cancelChunkGeneration")

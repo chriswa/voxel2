@@ -4,15 +4,20 @@ import Config from "./Config"
 const frameLog = []
 
 let lastTime = performance.now()
+let startTime = performance.now()
 
 export default function(message: string) {
 	const now = performance.now()
 	frameLog.push({ message, now })
 }
 
-export function onFrame(frameStartTime: number) {
+export function onFrameStart() {
+	startTime = performance.now()
+}
+
+export function onFrameComplete() {
 	const now = performance.now()
-	const elapsed = now - lastTime
+	const elapsed = now - startTime
 	
 	const slowFrameThreshold = <number>Config.slowFrame
 	if (elapsed > slowFrameThreshold) {
@@ -20,7 +25,6 @@ export function onFrame(frameStartTime: number) {
 		frameLog.forEach(frameLogEntry => console.log(`  ${frameLogEntry.message} @ ${(frameLogEntry.now - now).toFixed(3)}`))
 	}
 
-	// clear frameLog
-	frameLog.length = 0
 	lastTime = now
+	frameLog.length = 0
 }

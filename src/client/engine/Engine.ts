@@ -24,7 +24,7 @@ const quadIdsByBlockAndSidePool = new Pool(
 		return new Uint16Array(geometrics.CHUNK_SIZE_CUBED * geometrics.facesPerCube)
 	},
 	(item) => {
-		item.fill(0)
+		item.fill(0) // OPTIMIZE ME!
 	}
 )
 
@@ -89,7 +89,9 @@ export default class Engine {
 		else {
 			const quadIdsByBlockAndSide = quadIdsByBlockAndSidePool.acquire()
 			const { quadCount, vertexArrays, unusedVertexArrays } = EngineChunkBuilder.drawInternalChunkQuads(chunkData.blocks, quadIdsByBlockAndSide)
-			unusedVertexArrays.forEach(vertexArray => { EngineChunkVertexArrayPool.release(vertexArray) })
+			unusedVertexArrays.forEach(vertexArray => {
+				EngineChunkVertexArrayPool.release(vertexArray)
+			})
 			this.authAddChunkData_withInternalQuads(chunkData, quadCount, vertexArrays, quadIdsByBlockAndSide)
 		}
 	}
@@ -122,7 +124,7 @@ export default class Engine {
 			geometrics.Sides.each(side => {
 				const neighbourChunk = chunk.neighboursBySideId[side.id]
 				if (neighbourChunk) {
-					EngineChunkBuilder.unstitchChunk(neighbourChunk, side.opposite)
+					//EngineChunkBuilder.unstitchChunk(neighbourChunk, side.opposite)
 					neighbourChunk.detatchNeighbour(side.opposite)
 				}
 			})
@@ -148,7 +150,6 @@ export default class Engine {
 		this.started = true
 	}
 	authOnFrame(time: number) {
-		DebugHud.frameTick(time)
 		// TODO: if started, do player controls including gravity, and send current position to this.authority.simUpdatePlayerPos()
 		// TODO: also call any other this.authority.sim* methods depending on player input
 

@@ -17,9 +17,13 @@ const Config: RecursiveDict = {
 }
 
 // load user-specific overrides from localStorage
-const storageString = localStorage.getItem("config")
-const storageObject = storageString ? JSON.parse(storageString) : {}
-copyFromStorageToConfig(storageObject, Config)
+let storageString
+let storageObject
+if (self.document) { // not a webWorker!
+	let storageString = localStorage.getItem("config")
+	let storageObject = storageString ? JSON.parse(storageString) : {}
+	copyFromStorageToConfig(storageObject, Config)
+}
 function copyFromStorageToConfig(source: RecursiveDict, target: RecursiveDict) {
 	for (var key in target) {
 		if (typeof target[key] === "object") {
