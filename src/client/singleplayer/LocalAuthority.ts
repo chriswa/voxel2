@@ -36,30 +36,6 @@ export default class LocalAuthority {
 		
 		this.voxelsInMovingSphere = new VoxelsInMovingSphere(chunkLoadRadius)
 		this.updatePlayerPos(this.playerPos, this.playerRot) // start chunks loading
-
-		//this.loadChunk(new v3(0, -1, 1))
-		//this.loadChunk(new v3(0, -1, 0))
-		//this.loadChunk(new v3(1, -1, 0))
-		//this.loadChunk(new v3(1, -1, 1))
-		
-		//for (let x = -1; x <= 4; x += 1) {
-		//	for (let y = -1; y <= 1; y += 1) {
-		//		for (let z = -1; z <= 4; z += 1) {
-		//			this.loadChunk(new v3(x, y, z))
-		//		}
-		//	}
-		//}
-		//setTimeout(() => { this.loadChunk(new v3(1, 0, 0)) }, 1000)
-		//setTimeout(() => { this.unloadChunk(this.chunks["1,0,0"]) }, 2000)
-		//setTimeout(() => {
-		//	for (let x = -2; x <= 2; x += 1) {
-		//		for (let y = -2; y <= 2; y += 1) {
-		//			for (let z = -2; z <= 2; z += 1) {
-		//				this.unloadChunk(new v3(x, y, z))
-		//			}
-		//		}
-		//	}
-		//}, 10000)
 	}
 	onFrame(time: number) {
 		this.chunkGenerator.onFrame()

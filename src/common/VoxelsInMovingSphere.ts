@@ -2,6 +2,7 @@ import v3 from "v3"
 import VoxelsInSphere from "./VoxelsInSphere"
 import * as _ from "lodash"
 
+
 export default class VoxelsInMovingSphere {
 
 	centerPos: v3
@@ -29,10 +30,15 @@ export default class VoxelsInMovingSphere {
 		this.newTag = this.newTag === 1 ? 2 : 1 // toggle between 1 and 2
 
 		const cursorPos = new v3()
-		
-		this.sortedRelativePositions.forEach((deltaPos) => {
-			cursorPos.set(deltaPos[0], deltaPos[1], deltaPos[2]).add(newCenterPos)
-			const cursorHash = cursorPos.toString()
+
+		const positionCount = this.sortedRelativePositions.length
+		for (let i = 0; i < positionCount; i += 1) {
+			const deltaPos = this.sortedRelativePositions[i]
+			const x = deltaPos[0] + newCenterPos.a[0]
+			const y = deltaPos[1] + newCenterPos.a[1]
+			const z = deltaPos[2] + newCenterPos.a[2]
+			cursorPos.set(x, y, z)
+			const cursorHash = x + ',' + y + ',' + z
 			// check if this position is new
 			if (!this.loadedAbsolutePositions[cursorHash]) {
 				onAdd(cursorPos)
@@ -42,7 +48,7 @@ export default class VoxelsInMovingSphere {
 			else {
 				this.loadedAbsolutePositions[cursorHash][0] = this.newTag
 			}
-		})
+		}
 		// any positions with the old tag are to be removed
 		_.each(this.loadedAbsolutePositions, ([tag, cursorPos], cursorId) => {
 			if (tag !== this.newTag) {

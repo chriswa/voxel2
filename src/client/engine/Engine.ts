@@ -42,6 +42,7 @@ export default class Engine {
 	chunks: { [key: string]: EngineChunk }
 	chunkDrawTaskIds: { [key: string]: number }
 	playerInput: PlayerInput
+	lastFrameTime: number
 
 	constructor(authority: LocalAuthority) {
 		this.authority = authority
@@ -51,6 +52,7 @@ export default class Engine {
 		this.chunks = {}
 		this.chunkDrawTaskIds = {}
 		this.playerInput = new PlayerInput(event => { this.onPlayerInputClick(event) })
+		this.lastFrameTime = performance.now()
 
 		DebugHud.init()
 
@@ -150,6 +152,11 @@ export default class Engine {
 		this.started = true
 	}
 	authOnFrame(time: number) {
+
+		const now = performance.now()
+		const elapsed = now - this.lastFrameTime
+		this.lastFrameTime = now
+
 		// TODO: if started, do player controls including gravity, and send current position to this.authority.simUpdatePlayerPos()
 		// TODO: also call any other this.authority.sim* methods depending on player input
 
@@ -171,7 +178,7 @@ export default class Engine {
 		// forward.multiplyScalar(0.5)
 		// this.playerPos.add(forward)
 
-		const speed = <number>Config.speed
+		const speed = <number>Config.speed * elapsed / 1000 * 60
 
 		// right
 		this.playerPos.a[0] += rightInput * playerRotationMatrix[0] * speed
@@ -199,8 +206,9 @@ export default class Engine {
 		twgl.resizeCanvasToDisplaySize(gl.canvas)
 		gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
 
-		// clear to black
-		gl.clearColor(0, 0, 0, 1)
+		// clear screen
+		//gl.clearColor(0, 0, 0, 1)
+		gl.clearColor(0.3, 0.5, 0.8, 1)
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 		this.renderChunks(playerRotationMatrix)

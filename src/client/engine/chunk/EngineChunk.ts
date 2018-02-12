@@ -86,29 +86,29 @@ export default class EngineChunk {
 		const meshQuadId = quadId % geometrics.maxQuadsPerMesh
 
 		const blockAndSideId = blockPos.i * 6 + side.id
-		// DEBUG
-		if (this.quadIdsByBlockAndSide[blockAndSideId] !== 0) {
-			console.log(`EngineChunk.addQuad: already a quad at ${blockPos.toString()}->${side.name}`)
-			const buggyQuadId = this.quadIdsByBlockAndSide[blockAndSideId]
-			const buggyMeshIndex = Math.floor(buggyQuadId / geometrics.maxQuadsPerMesh)
-			const buggyMesh = this.meshes[buggyMeshIndex]
-			const buggyMeshQuadId = buggyQuadId % geometrics.maxQuadsPerMesh
-			const buggyCursor = buggyMeshQuadId * geometrics.quadVertexByteSize
-			for (let i = 0; i < 4; i += 1) {
-				console.log(buggyMesh.vertexArray.subarray(buggyCursor + i*8, (buggyCursor + i * 8) + 7).join(', '))
-			}
-		}
+		// DEBUG (disabled along with unstitching, for now)
+		//if (this.quadIdsByBlockAndSide[blockAndSideId] !== 0) {
+		//	console.log(`EngineChunk.addQuad: already a quad at ${blockPos.toString()}->${side.name}`)
+		//	const buggyQuadId = this.quadIdsByBlockAndSide[blockAndSideId]
+		//	const buggyMeshIndex = Math.floor(buggyQuadId / geometrics.maxQuadsPerMesh)
+		//	const buggyMesh = this.meshes[buggyMeshIndex]
+		//	const buggyMeshQuadId = buggyQuadId % geometrics.maxQuadsPerMesh
+		//	const buggyCursor = buggyMeshQuadId * geometrics.quadVertexByteSize
+		//	for (let i = 0; i < 4; i += 1) {
+		//		console.log(buggyMesh.vertexArray.subarray(buggyCursor + i*8, (buggyCursor + i * 8) + 7).join(', '))
+		//	}
+		//}
 
 		mesh.drawQuad(meshQuadId, blockPos, side, uvs, brightnesses)
 
-		// DEBUG
-		if (this.quadIdsByBlockAndSide[blockAndSideId] !== 0) {
-			console.log(`new quad:`)
-			const newCursor = meshQuadId * geometrics.quadVertexByteSize
-			for (let i = 0; i < 4; i += 1) {
-				console.log(mesh.vertexArray.subarray(newCursor + i * 8, (newCursor + i * 8) + 7).join(', '))
-			}
-		}
+		// DEBUG (disabled along with unstitching, for now)
+		//if (this.quadIdsByBlockAndSide[blockAndSideId] !== 0) {
+		//	console.log(`new quad:`)
+		//	const newCursor = meshQuadId * geometrics.quadVertexByteSize
+		//	for (let i = 0; i < 4; i += 1) {
+		//		console.log(mesh.vertexArray.subarray(newCursor + i * 8, (newCursor + i * 8) + 7).join(', '))
+		//	}
+		//}
 
 		this.quadIdsByBlockAndSide[blockAndSideId] = quadId + 1
 		
