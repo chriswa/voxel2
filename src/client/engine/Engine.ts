@@ -74,8 +74,8 @@ export default class Engine {
 		this.playerInput.heading = newRot.y
 	}
 	authAddChunkData(chunkData: ChunkData) {
-		DebugFrameLogger("Engine.authAddChunkData")
-		DebugChunkLogger(chunkData.pos, "Engine.authAddChunkData")
+		//DebugFrameLogger("Engine.authAddChunkData")
+		//DebugChunkLogger(chunkData.pos, "Engine.authAddChunkData")
 
 		if (<boolean>Config.chunkInternalWorkers) {
 
@@ -98,8 +98,8 @@ export default class Engine {
 		}
 	}
 	authAddChunkData_withInternalQuads(chunkData: ChunkData, quadCount: number, initialVertexArrays: Array<geometrics.VertexArrayType>, quadIdsByBlockAndSide: Uint16Array) {
-		DebugFrameLogger("Engine.authAddChunkData_withInternalQuads")
-		DebugChunkLogger(chunkData.pos, "Engine.authAddChunkData_withInternalQuads")
+		//DebugFrameLogger("Engine.authAddChunkData_withInternalQuads")
+		//DebugChunkLogger(chunkData.pos, "Engine.authAddChunkData_withInternalQuads")
 
 		// create our chunk object
 		const chunk = new EngineChunk(chunkData, quadCount, initialVertexArrays, quadIdsByBlockAndSide)
@@ -119,7 +119,7 @@ export default class Engine {
 		EngineChunkBuilder.stitchChunks(chunk)
 	}
 	authRemoveChunkData(chunkData: ChunkData) {
-		DebugChunkLogger(chunkData.pos, "Engine.authRemoveChunkData")
+		//DebugChunkLogger(chunkData.pos, "Engine.authRemoveChunkData")
 
 		const chunk = this.chunks[chunkData.id]
 		if (chunk) {

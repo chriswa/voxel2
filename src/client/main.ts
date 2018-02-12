@@ -25,10 +25,10 @@ global["v3"] = v3
 
 // main loop
 function onFrame(time: number) {
-	DebugFrameLogger.onFrameStart()
+	//DebugFrameLogger.onFrameStart()
 	authority.onFrame(time)
 	gl.finish()
-	DebugFrameLogger.onFrameComplete()
+	//DebugFrameLogger.onFrameComplete()
 	requestAnimationFrame(onFrame)
 }
 requestAnimationFrame(onFrame)

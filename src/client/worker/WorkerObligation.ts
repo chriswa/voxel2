@@ -14,7 +14,7 @@ export function registerTaskHandlers(taskHandlersArray: Array<TaskHandler>) {
 		const requestPayload: WorkerPayload = event.data
 
 		if (requestPayload.cancelTask) {
-			console.log("worker task cancelled (but unable to stop non-incremental task)")
+			//console.log("worker task cancelled (but unable to stop non-incremental task)")
 		}
 		else if (activeTaskId) {
 			console.error(`Worker was messaged to start a new task before finishing the previous task!?`)

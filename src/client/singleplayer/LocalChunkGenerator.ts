@@ -17,13 +17,13 @@ export default class LocalChunkGenerator {
 		this.tasks = {}
 	}
 	queueChunkGeneration(chunkPos: v3) {
-		DebugChunkLogger(chunkPos, "LocalChunkGenerator.queueChunkGeneration")
+		//DebugChunkLogger(chunkPos, "LocalChunkGenerator.queueChunkGeneration")
 		const chunkId = chunkPos.toString()
 		if (this.queue[chunkId] || this.tasks[chunkId]) { return } // already generating this chunk!
 		this.queue[chunkId] = chunkPos.clone()
 	}
 	cancelChunkGeneration(chunkPos: v3) {
-		DebugChunkLogger(chunkPos, "LocalChunkGenerator.cancelChunkGeneration")
+		//DebugChunkLogger(chunkPos, "LocalChunkGenerator.cancelChunkGeneration")
 		const chunkId = chunkPos.toString()
 		const taskId = this.tasks[chunkId]
 		if (taskId) {
@@ -43,8 +43,8 @@ export default class LocalChunkGenerator {
 		}
 	}
 	generateChunk(chunkPos: v3) {
-		DebugFrameLogger("LocalChunkGenerator.generateChunk")
-		DebugChunkLogger(chunkPos, "LocalChunkGenerator.generateChunk")
+		//DebugFrameLogger("LocalChunkGenerator.generateChunk")
+		//DebugChunkLogger(chunkPos, "LocalChunkGenerator.generateChunk")
 
 		const chunkId = chunkPos.toString()
 
