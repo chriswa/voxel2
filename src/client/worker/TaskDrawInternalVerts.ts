@@ -79,6 +79,7 @@ export default {
 		const initialVertexArrays: Array<geometrics.VertexArrayType> = requestPayload.initialVertexArrays.map(buffer => new Int32Array(buffer))
 
 		// process request
+		quadIdsByBlockAndSide.fill(0)
 		const { quadCount, vertexArrays, unusedVertexArrays } = EngineChunkBuilder.drawInternalChunkQuads(blockData, quadIdsByBlockAndSide, initialVertexArrays)
 
 		// respond

@@ -22,9 +22,6 @@ const m4 = twgl.m4
 const quadIdsByBlockAndSidePool = new Pool(
 	() => {
 		return new Uint16Array(geometrics.CHUNK_SIZE_CUBED * geometrics.facesPerCube)
-	},
-	(item) => {
-		item.fill(0) // OPTIMIZE ME!
 	}
 )
 
