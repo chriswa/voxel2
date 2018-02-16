@@ -104,7 +104,7 @@ const EngineChunkRenderer = {
 		}
 		twgl.setUniforms(this.programInfo, uniforms)
 	},
-	setWorldViewProjectionMatrix(worldViewProjectionMatrix: Array<number>) {
+	setWorldViewProjectionMatrix(worldViewProjectionMatrix: twgl.Mat4) {
 		const uniforms = {
 			u_worldViewProjection: worldViewProjectionMatrix,
 		}

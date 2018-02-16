@@ -40,7 +40,7 @@ export default class LocalAuthority {
 	onFrame(time: number) {
 		this.chunkGenerator.onFrame()
 		this.engine.authOnFrame(time)
-		DebugHud.updateChunks(Object.values(this.chunks).length, Object.values(this.engine.chunks).length)
+		DebugHud.updateChunks(Object.keys(this.chunks).length, Object.keys(this.engine.chunks).length)
 	}
 
 	updatePlayerPos(newPlayerPos: v3, newPlayerRot: v3) {

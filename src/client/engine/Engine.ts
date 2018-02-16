@@ -198,7 +198,7 @@ export default class Engine {
 
 		DebugHud.updatePlayer(this.playerPos, this.playerRot)
 	}
-	render(playerRotationMatrix: Array<number>) {
+	render(playerRotationMatrix: twgl.Mat4) {
 		// handle resized browser window
 		twgl.resizeCanvasToDisplaySize(gl.canvas)
 		gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
@@ -210,7 +210,7 @@ export default class Engine {
 
 		this.renderChunks(playerRotationMatrix)
 	}
-	renderChunks(playerRotationMatrix: Array<number>) {
+	renderChunks(playerRotationMatrix: twgl.Mat4) {
 		EngineChunkRenderer.initRenderProgram()
 
 		const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight

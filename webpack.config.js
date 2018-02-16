@@ -1,6 +1,6 @@
 var path = require("path")
 var webpack = require("webpack")
-var ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
+//var ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 var HtmlWebpackPlugin = require("html-webpack-plugin")
 var UglifyJSPlugin = require("uglifyjs-webpack-plugin")
 
