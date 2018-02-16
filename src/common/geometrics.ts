@@ -15,6 +15,8 @@ export const maxQuadsPerMesh  = 2400
 
 export const quadVertexElementSize = 2
 export const quadVertexByteSize = Uint32Array.BYTES_PER_ELEMENT * quadVertexElementSize
+export const quadByteStride = /*geometrics.VertexArrayType*/Uint32Array.BYTES_PER_ELEMENT * 2
+export const bufferByteSize = maxQuadsPerMesh * quadByteStride
 
 export type VertexArrayType = Uint32Array
 

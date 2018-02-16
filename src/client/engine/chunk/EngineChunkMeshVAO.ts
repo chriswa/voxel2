@@ -13,7 +13,7 @@ export default class EngineChunkMeshVAO {
 		// ...except that we don't need to send the array to the GPU yet (because it doesn't have any data in it yet)
 		this.glBuffer = gl.createBuffer()
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.glBuffer)
-		gl.bufferData(gl.ARRAY_BUFFER, EngineChunkRenderer.bufferByteSize, gl.DYNAMIC_DRAW)
+		gl.bufferData(gl.ARRAY_BUFFER, geometrics.bufferByteSize, gl.DYNAMIC_DRAW)
 
 		const bufferInfo = EngineChunkRenderer.createBufferInfo(this.glBuffer)
 

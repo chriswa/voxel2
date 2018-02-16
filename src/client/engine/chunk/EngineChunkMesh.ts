@@ -53,10 +53,10 @@ export default class EngineChunkMesh {
 				quadPushCount * geometrics.quadVertexByteSize // length (bytes)
 			)*/
 			gl.bufferSubData(gl.ARRAY_BUFFER,
-				this.minDirtyQuad * EngineChunkRenderer.quadByteStride, // dstByteOffset
+				this.minDirtyQuad * geometrics.quadByteStride, // dstByteOffset
 				this.vertexArray,
 				this.minDirtyQuad * geometrics.quadVertexByteSize / 4, // srcOffset
-				quadPushCount * EngineChunkRenderer.quadByteStride / 4 // length (bytes)
+				quadPushCount * geometrics.quadByteStride / 4 // length (bytes)
 			)
 
 			// nothing left to write
@@ -67,10 +67,10 @@ export default class EngineChunkMesh {
 
 			//gl.bindBuffer(gl.ARRAY_BUFFER, this.vao.glBuffer)
 			//gl.bufferSubData(gl.ARRAY_BUFFER,
-			//	this.minDirtyQuad * EngineChunkRenderer.quadByteStride * 4, // dstByteOffset
+			//	this.minDirtyQuad * geometrics.quadByteStride * 4, // dstByteOffset
 			//	this.vertexArray,
-			//	this.minDirtyQuad * EngineChunkRenderer.quadByteStride, // srcOffset
-			//	1 * EngineChunkRenderer.quadByteStride // length (bytes)
+			//	this.minDirtyQuad * geometrics.quadByteStride, // srcOffset
+			//	1 * geometrics.quadByteStride // length (bytes)
 			//)
 
 			//gl.bindBuffer(gl.ARRAY_BUFFER, this.vao.glBuffer)
