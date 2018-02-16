@@ -6,7 +6,8 @@ import EngineChunkMeshVAO from "./EngineChunkMeshVAO"
 
 //const bytesPerFloat = 4
 //const vertexByteStride = bytesPerFloat * (3 + 2 + 1) // 32 === 4 * ( position (3 floats) + texcoord (2 floats) + rgba8 (3 floats) )
-const vertexByteStride = 4 * 2
+export const vertexByteStride = 4 * 2
+export const bufferByteSize = geometrics.maxQuadsPerMesh * 4 * vertexByteStride
 
 const packedAttribOrder = [
 	"a_packed",
@@ -50,7 +51,7 @@ const fragmentShaderSource = `#version 300 es
 		fragColor = texture(u_texture, v_texcoord) * vec4(v_color, v_color, v_color, 1.);
 	}`
 
-const indexBufferGlType = gl.UNSIGNED_SHORT
+export const indexBufferGlType = gl.UNSIGNED_SHORT
 function createIndexBuffer() {
 	const indexArray = new Uint16Array(geometrics.maxQuadsPerMesh * geometrics.indicesPerFace)
 	for (let quadIndex = 0, indexIndex = 0, vertIndex = 0; quadIndex < geometrics.maxQuadsPerMesh; quadIndex += 1, indexIndex += 6, vertIndex += 4) {
@@ -64,52 +65,48 @@ function createIndexBuffer() {
 	return twgl.createBufferFromTypedArray(gl, indexArray, gl.ELEMENT_ARRAY_BUFFER)
 }
 
-const EngineChunkRenderer = {
+export const texture = twgl.createTexture(gl, { src: "minecraft15.png", mag: gl.NEAREST, min: gl.NEAREST, level: 0, auto: false, crossOrigin: "anonymous" })
+export const programInfo = twgl.createProgramInfo(gl, [vertexShaderSource, fragmentShaderSource], packedAttribOrder)
+export const indexBuffer = createIndexBuffer()
+export const vaoPool = <Pool<EngineChunkMeshVAO>>new Pool(() => {
+	return new EngineChunkMeshVAO()
+})
 
-	vertexByteStride: vertexByteStride,
-	indexBufferGlType: indexBufferGlType,
 
-	texture: twgl.createTexture(gl, { src: "minecraft15.png", mag: gl.NEAREST, min: gl.NEAREST, level: 0, auto: false, crossOrigin: "anonymous" }),
-	programInfo: twgl.createProgramInfo(gl, [vertexShaderSource, fragmentShaderSource], packedAttribOrder),
-	indexBuffer: createIndexBuffer(),
-	vaoPool: <Pool<EngineChunkMeshVAO>>new Pool(() => {
-		return new EngineChunkMeshVAO()
-	}),
-
-	createBufferInfo(glBuffer: WebGLBuffer) {
-		return {
-			numElements: geometrics.maxVerts * geometrics.uniqVertsPerFace,
-			indices: this.indexBuffer,
-			elementType: this.indexBufferGlType,
-			attribs: {
-				a_packed: { buffer: glBuffer, numComponents: 2, type: gl.INT, stride: this.vertexByteStride, offset: 0, },
-				//a_position: { buffer: glBuffer, numComponents: 3, type: gl.FLOAT, stride: this.vertexByteStride, offset: 0, },
-				//a_texcoord: { buffer: glBuffer, numComponents: 2, type: gl.FLOAT, stride: this.vertexByteStride, offset: 12, },
-				//a_color: { buffer: glBuffer, numComponents: 1, type: gl.FLOAT, stride: this.vertexByteStride, offset: 20, },
-			},
-		}
-	},
-
-	acquireVAO() {
-		return this.vaoPool.acquire()
-	},
-	releaseVAO(vao: EngineChunkMeshVAO) {
-		//console.log(`releaseVAO`)
-		this.vaoPool.release(vao)
-	},
-	initRenderProgram() {
-		gl.useProgram(this.programInfo.program)
-		const uniforms = {
-			u_texture: this.texture,
-		}
-		twgl.setUniforms(this.programInfo, uniforms)
-	},
-	setWorldViewProjectionMatrix(worldViewProjectionMatrix: twgl.Mat4) {
-		const uniforms = {
-			u_worldViewProjection: worldViewProjectionMatrix,
-		}
-		twgl.setUniforms(this.programInfo, uniforms)
-	},
+export function createBufferInfo(glBuffer: WebGLBuffer) {
+	return {
+		numElements: geometrics.maxVerts * geometrics.uniqVertsPerFace,
+		indices: indexBuffer,
+		elementType: indexBufferGlType,
+		attribs: {
+			a_packed: { buffer: glBuffer, numComponents: 2, type: gl.INT, stride: vertexByteStride, offset: 0, },
+			//a_position: { buffer: glBuffer, numComponents: 3, type: gl.FLOAT, stride: vertexByteStride, offset: 0, },
+			//a_texcoord: { buffer: glBuffer, numComponents: 2, type: gl.FLOAT, stride: vertexByteStride, offset: 12, },
+			//a_color: { buffer: glBuffer, numComponents: 1, type: gl.FLOAT, stride: vertexByteStride, offset: 20, },
+		},
+	}
 }
 
-export default EngineChunkRenderer
+export function acquireVAO() {
+	return vaoPool.acquire()
+}
+
+export function releaseVAO(vao: EngineChunkMeshVAO) {
+	//console.log(`releaseVAO`)
+	vaoPool.release(vao)
+}
+
+export function initRenderProgram() {
+	gl.useProgram(programInfo.program)
+	const uniforms = {
+		u_texture: texture,
+	}
+	twgl.setUniforms(programInfo, uniforms)
+}
+
+export function setWorldViewProjectionMatrix(worldViewProjectionMatrix: twgl.Mat4) {
+	const uniforms = {
+		u_worldViewProjection: worldViewProjectionMatrix,
+	}
+	twgl.setUniforms(programInfo, uniforms)
+}

@@ -1,7 +1,7 @@
 import * as _ from "lodash"
 import * as geometrics from "geometrics"
 import EngineChunk from "./chunk/EngineChunk"
-import EngineChunkRenderer from "./chunk/EngineChunkRenderer"
+import * as EngineChunkRenderer from "./chunk/EngineChunkRenderer"
 import EngineChunkBuilder from "./chunk/EngineChunkBuilder"
 import Pool from "Pool"
 import v3 from "v3"

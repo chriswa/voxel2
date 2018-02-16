@@ -1,5 +1,5 @@
-import EngineChunkQuadWriter from "./EngineChunkQuadWriter"
-import EngineChunkRenderer from "./EngineChunkRenderer"
+import * as EngineChunkQuadWriter from "./EngineChunkQuadWriter"
+import * as EngineChunkRenderer from "./EngineChunkRenderer"
 import EngineChunkMeshVAO from "./EngineChunkMeshVAO"
 import * as geometrics from "geometrics"
 import v3 from "v3"
