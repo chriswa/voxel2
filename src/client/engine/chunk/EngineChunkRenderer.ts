@@ -12,13 +12,14 @@ const packedAttribOrder = [
 const vertexShaderSource = `#version 300 es
 	precision mediump float;
 
-	const vec3 cornerPositions[24] = vec3[](
+	const vec3 cornerPositions[28] = vec3[](
 		vec3(0., 1., 1.), vec3(1., 1., 1.), vec3(1., 1., 0.), vec3(0., 1., 0.),
 		vec3(0., 0., 0.), vec3(1., 0., 0.), vec3(1., 0., 1.), vec3(0., 0., 1.),
 		vec3(1., 0., 1.), vec3(1., 1., 1.), vec3(0., 1., 1.), vec3(0., 0., 1.),
 		vec3(0., 0., 0.), vec3(0., 1., 0.), vec3(1., 1., 0.), vec3(1., 0., 0.),
 		vec3(1., 0., 0.), vec3(1., 1., 0.), vec3(1., 1., 1.), vec3(1., 0., 1.),
-		vec3(0., 0., 1.), vec3(0., 1., 1.), vec3(0., 1., 0.), vec3(0., 0., 0.)
+		vec3(0., 0., 1.), vec3(0., 1., 1.), vec3(0., 1., 0.), vec3(0., 0., 0.),
+		vec3(0., 0., 0.), vec3(0., 0., 0.), vec3(0., 0., 0.), vec3(0., 0., 0.) // invalid side used to hide quad
 	);
 	const vec2 cornerTexcoords[] = vec2[](
 		vec2(0., 1.), vec2(0., 0.), vec2(1., 0.), vec2(1., 1.),
@@ -26,7 +27,8 @@ const vertexShaderSource = `#version 300 es
 		vec2(0., 1.), vec2(0., 0.), vec2(1., 0.), vec2(1., 1.),
 		vec2(0., 1.), vec2(0., 0.), vec2(1., 0.), vec2(1., 1.),
 		vec2(0., 1.), vec2(0., 0.), vec2(1., 0.), vec2(1., 1.),
-		vec2(0., 1.), vec2(0., 0.), vec2(1., 0.), vec2(1., 1.)
+		vec2(0., 1.), vec2(0., 0.), vec2(1., 0.), vec2(1., 1.),
+		vec2(0., 0.), vec2(0., 0.), vec2(0., 0.), vec2(0., 0.) // invalid side used to hide quad
 	);
 
 	uniform mat4 u_worldViewProjection;
@@ -85,7 +87,7 @@ export const junkBuffer = gl.createBuffer()
 gl.bindBuffer(gl.ARRAY_BUFFER, junkBuffer)
 gl.bufferData(gl.ARRAY_BUFFER, geometrics.maxQuadsPerMesh * 4, gl.DYNAMIC_DRAW)
 
-export const texture = twgl.createTexture(gl, { src: "minecraft15.png", mag: gl.NEAREST, min: gl.NEAREST, level: 0, auto: false, crossOrigin: "anonymous" })
+export const texture = twgl.createTexture(gl, { src: "Kenney_voxel_pack_atlas.png", mag: gl.NEAREST, min: gl.NEAREST, level: 0, auto: false, crossOrigin: "anonymous" })
 export const programInfo = twgl.createProgramInfo(gl, [vertexShaderSource, fragmentShaderSource], packedAttribOrder)
 export const vaoPool = <Pool<EngineChunkMeshVAO>>new Pool(() => {
 	return new EngineChunkMeshVAO()

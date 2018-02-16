@@ -34,7 +34,7 @@ export default {
 					if (sampleVector.y < -10) {
 						blockData = BlockTypes.byName.obsidian.id
 					}
-					else if (sampleVector.y < 50) {
+					else if (sampleVector.y < 80) {
 						blockData = this.terrainGen(sampleVector, v_dist, v_closest)
 					}
 

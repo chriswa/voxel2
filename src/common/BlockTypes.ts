@@ -23,11 +23,7 @@ class BlockType {
 	makeTextureSide(tileIndex: number) {
 		var tu = tileIndex % 16
 		var tv = Math.floor(tileIndex / 16)
-		var u0 = tu / 16
-		var u1 = (tu + 1) / 16
-		var v0 = (tv + 1) / 16
-		var v1 = tv / 16
-		return [ u1, v0, u1, v1, u0, v1, u0, v0 ]
+		return [ tu, tv ]
 	}
 }
 
