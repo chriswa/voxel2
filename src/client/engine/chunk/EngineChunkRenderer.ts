@@ -6,19 +6,27 @@ import EngineChunkMeshVAO from "./EngineChunkMeshVAO"
 
 const packedAttribOrder = [
 	"a_packed",
-	"a_junk", // see junkBuffer below
+	"a_junk", // firefox hack: see notes on junkBuffer below
 ]
 
 const vertexShaderSource = `#version 300 es
 	precision mediump float;
 
-	const vec3 sideTransforms[24] = vec3[](
+	const vec3 cornerPositions[24] = vec3[](
 		vec3(0., 1., 1.), vec3(1., 1., 1.), vec3(1., 1., 0.), vec3(0., 1., 0.),
 		vec3(0., 0., 0.), vec3(1., 0., 0.), vec3(1., 0., 1.), vec3(0., 0., 1.),
 		vec3(1., 0., 1.), vec3(1., 1., 1.), vec3(0., 1., 1.), vec3(0., 0., 1.),
 		vec3(0., 0., 0.), vec3(0., 1., 0.), vec3(1., 1., 0.), vec3(1., 0., 0.),
 		vec3(1., 0., 0.), vec3(1., 1., 0.), vec3(1., 1., 1.), vec3(1., 0., 1.),
 		vec3(0., 0., 1.), vec3(0., 1., 1.), vec3(0., 1., 0.), vec3(0., 0., 0.)
+	);
+	const vec2 cornerTexcoords[] = vec2[](
+		vec2(0., 1.), vec2(0., 0.), vec2(1., 0.), vec2(1., 1.),
+		vec2(0., 1.), vec2(0., 0.), vec2(1., 0.), vec2(1., 1.),
+		vec2(0., 1.), vec2(0., 0.), vec2(1., 0.), vec2(1., 1.),
+		vec2(0., 1.), vec2(0., 0.), vec2(1., 0.), vec2(1., 1.),
+		vec2(0., 1.), vec2(0., 0.), vec2(1., 0.), vec2(1., 1.),
+		vec2(0., 1.), vec2(0., 0.), vec2(1., 0.), vec2(1., 1.)
 	);
 
 	uniform mat4 u_worldViewProjection;
@@ -31,22 +39,25 @@ const vertexShaderSource = `#version 300 es
 		int cornerId = gl_VertexID % 4; 
 		cornerId += a_junk; // XXX: force this attribute to not get optimized away
 		int sideId = (a_packed[0] >> 15) & 0x7;
-		vec3 cornerPos = sideTransforms[(sideId * 4) + cornerId];
-		//float cornerX = sideTransforms[(sideId * 12) + (cornerId * 3) + 0];
-		//float cornerY = sideTransforms[(sideId * 12) + (cornerId * 3) + 1];
-		//float cornerZ = sideTransforms[(sideId * 12) + (cornerId * 3) + 2];
+		int flipQuad = (a_packed[0] >> 18) & 0x1;
 
+		cornerId = (cornerId + flipQuad) % 4;
+		
+		vec3 cornerPos = cornerPositions[(sideId * 4) + cornerId];
 		vec4 position = vec4(
 			float((a_packed[0] >> 0) & 0x1f) + cornerPos.x,
 			float((a_packed[0] >> 5) & 0x1f) + cornerPos.y,
 			float((a_packed[0] >> 10) & 0x1f) + cornerPos.z,
 			1.
 		);
+
+		vec2 cornerUv = cornerTexcoords[(sideId * 4) + cornerId];
 		vec2 texcoord = vec2(
-			(float((a_packed[1] >> 0) & 0xf) + cornerPos.x) / 16.,
-			(float((a_packed[1] >> 4) & 0xf) + cornerPos.x) / 16.
+			(float((a_packed[1] >> 16) & 0xf) + cornerUv.x) / 16.,
+			(float((a_packed[1] >> 20) & 0xf) + cornerUv.y) / 16.
 		);
-		float color = 1.;float((a_packed[1] >> 8) & 0xf) / 15.; // 0 .. 15 -> 0.0 .. 1.0
+
+		float color = float((a_packed[1] >> (cornerId * 4)) & 0xf) / 15.; // 0 .. 15 -> 0.0 .. 1.0
 
 		gl_Position = u_worldViewProjection * position;
 		v_texcoord = texcoord;

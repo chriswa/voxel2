@@ -75,4 +75,4 @@ addBlockType("snowy_grass", 68).setSideTile(Sides.byName.TOP, 66).setSideTile(Si
 addBlockType("fungus", 77).setSideTile(Sides.byName.TOP, 78).setSideTile(Sides.byName.BOTTOM, 2)
 addBlockType("mossy_stone_brick", 100)
 addBlockType("cracked_stone_brick", 101)
-addBlockType("sandstone", 176).setSideTile(Sides.byName.TOP, 192).setSideTile(Sides.byName.BOTTOM, 192)
+addBlockType("sandstone", 192).setSideTile(Sides.byName.TOP, 176).setSideTile(Sides.byName.BOTTOM, 176)
