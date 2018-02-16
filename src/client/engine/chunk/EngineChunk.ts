@@ -1,9 +1,9 @@
 import * as geometrics from "geometrics"
 import EngineChunkVertexArrayPool from "./EngineChunkVertexArrayPool"
 import EngineChunkMesh from "./EngineChunkMesh"
-import ChunkData from "client/ChunkData"
+import ChunkData from "../../ChunkData"
 import v3 from "v3"
-import BlockPos from "BlockPos";
+import BlockPos from "BlockPos"
 
 
 export default class EngineChunk {
@@ -38,7 +38,7 @@ export default class EngineChunk {
 		this.quadHoleList = [] // quads which may be reused, but have already been zero'd out (dirty quads that did not get used)
 	}
 	addNewMesh() {
-		const newVertexArray: geometrics.VertexArrayType = new Int32Array(EngineChunkVertexArrayPool.acquire())
+		const newVertexArray: geometrics.VertexArrayType = new Uint32Array(EngineChunkVertexArrayPool.acquire())
 		this.meshes.push(new EngineChunkMesh(undefined, newVertexArray, 0))
 	}
 	destroy() {

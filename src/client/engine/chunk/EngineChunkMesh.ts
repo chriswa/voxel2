@@ -46,11 +46,17 @@ export default class EngineChunkMesh {
 			renderBudget -= Math.max(quadPushCount, 200) // increase the budget cost of small updates, since 1x1000 bufferSubData calls probably costs way more than 1000x1
 
 			gl.bindBuffer(gl.ARRAY_BUFFER, this.vao.glBuffer)
-			gl.bufferSubData(gl.ARRAY_BUFFER,
+			/*gl.bufferSubData(gl.ARRAY_BUFFER,
 				this.minDirtyQuad * geometrics.quadVertexByteSize * 4, // dstByteOffset
 				this.vertexArray,
 				this.minDirtyQuad * geometrics.quadVertexByteSize, // srcOffset
 				quadPushCount * geometrics.quadVertexByteSize // length (bytes)
+			)*/
+			gl.bufferSubData(gl.ARRAY_BUFFER,
+				this.minDirtyQuad * EngineChunkRenderer.quadByteStride, // dstByteOffset
+				this.vertexArray,
+				this.minDirtyQuad * geometrics.quadVertexByteSize / 4, // srcOffset
+				quadPushCount * EngineChunkRenderer.quadByteStride / 4 // length (bytes)
 			)
 
 			// nothing left to write
@@ -61,10 +67,10 @@ export default class EngineChunkMesh {
 
 			//gl.bindBuffer(gl.ARRAY_BUFFER, this.vao.glBuffer)
 			//gl.bufferSubData(gl.ARRAY_BUFFER,
-			//	this.minDirtyQuad * geometrics.quadVertexByteSize * 4, // dstByteOffset
+			//	this.minDirtyQuad * EngineChunkRenderer.quadByteStride * 4, // dstByteOffset
 			//	this.vertexArray,
-			//	this.minDirtyQuad * geometrics.quadVertexByteSize, // srcOffset
-			//	1 * geometrics.quadVertexByteSize // length (bytes)
+			//	this.minDirtyQuad * EngineChunkRenderer.quadByteStride, // srcOffset
+			//	1 * EngineChunkRenderer.quadByteStride // length (bytes)
 			//)
 
 			//gl.bindBuffer(gl.ARRAY_BUFFER, this.vao.glBuffer)

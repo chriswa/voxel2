@@ -3,7 +3,7 @@ import Pool from "Pool"
 
 function createPool(): Pool<geometrics.VertexArrayType> {
 	return new Pool(() => {
-		return new Int32Array(geometrics.maxQuadsPerMesh * geometrics.quadVertexByteSize)
+		return new Uint32Array(geometrics.maxQuadsPerMesh * geometrics.quadVertexByteSize)
 	})
 }
 

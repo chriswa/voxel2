@@ -13,27 +13,11 @@ export const maxVerts         = 64 * 1024 // this should be 64k
 export const maxQuadsPerChunk = maxVerts / uniqVertsPerFace
 export const maxQuadsPerMesh  = 2400
 
-export const vertexByteSize = 2
-export const quadVertexByteSize = vertexByteSize * 4
+export const quadVertexElementSize = 2
+export const quadVertexByteSize = Uint32Array.BYTES_PER_ELEMENT * quadVertexElementSize
 
-export type VertexArrayType = Int32Array
+export type VertexArrayType = Uint32Array
 
-export function createIndexBufferTypedArray() {
-	const array = new Uint32Array(maxQuadsPerChunk * indicesPerFace)
-	let arrayIndex = 0
-	let vertIndex = 0
-	for (let quadIndex = 0; quadIndex < maxQuadsPerChunk; quadIndex += 1) {
-		array[arrayIndex + 0] = vertIndex + 0
-		array[arrayIndex + 1] = vertIndex + 1
-		array[arrayIndex + 2] = vertIndex + 2
-		array[arrayIndex + 3] = vertIndex + 0
-		array[arrayIndex + 4] = vertIndex + 2
-		array[arrayIndex + 5] = vertIndex + 3
-		arrayIndex += 6
-		vertIndex += 4
-	}
-	return array
-}
 
 export function worldPosToChunkPos(worldPos: v3) {
 	return worldPos.clone().divideScalar(CHUNK_SIZE).floor()

@@ -24,7 +24,8 @@ export default class EngineChunkMeshVAO {
 		// note: it's assumed that EngineChunkRenderer.preRender() has already been called!
 		twgl.setBuffersAndAttributes(gl, EngineChunkRenderer.programInfo, this.vaoInfo) // i.e. gl.bindVertexArray(this.vaoInfo.vertexArrayObject)
 		// twgl.drawBufferInfo(gl, this.vaoInfo) ... but i want to set an upper limit
-		gl.drawElements(gl.TRIANGLES, meshQuadCount * geometrics.indicesPerFace, EngineChunkRenderer.indexBufferGlType, 0)
+		// gl.drawElementsInstanced(type, numElements, elementType === undefined ? gl.UNSIGNED_SHORT : bufferInfo.elementType, offset, instanceCount)
+		gl.drawElementsInstanced(gl.TRIANGLES, 6, EngineChunkRenderer.indexBufferGlType, 0, meshQuadCount)
 	}
 	destroy() {
 		EngineChunkRenderer.releaseVAO(this)

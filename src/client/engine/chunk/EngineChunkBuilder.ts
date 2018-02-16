@@ -65,7 +65,7 @@ class ChunkPrewriter {
 		this.currentVertexArray = undefined
 	}
 	addVertexArray() {
-		var vertexArray: geometrics.VertexArrayType = new Int32Array(this.vertexArrayPool.acquire())
+		var vertexArray: geometrics.VertexArrayType = new Uint32Array(this.vertexArrayPool.acquire())
 		this.vertexArrays.push(vertexArray)
 		return vertexArray
 	}

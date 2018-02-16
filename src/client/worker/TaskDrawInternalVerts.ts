@@ -42,14 +42,14 @@ export default {
 
 				chunkData.blocks = new Uint8Array(completePayload.blockData)
 
-				const unusedVertexArrays = completePayload.unusedVertexArrays.map(buffer => new Int32Array(buffer))
+				const unusedVertexArrays = completePayload.unusedVertexArrays.map(buffer => new Uint32Array(buffer))
 				unusedVertexArrays.forEach(vertexArray => {
 					EngineChunkVertexArrayPool.release(vertexArray)
 				})
 
 				onComplete(
 					<number>completePayload.quadCount,
-					completePayload.vertexArrays.map(buffer => new Int32Array(buffer)),
+					completePayload.vertexArrays.map(buffer => new Uint32Array(buffer)),
 					new Uint16Array(completePayload.quadIdsByBlockAndSide)
 				)
 
@@ -59,11 +59,11 @@ export default {
 				ChunkData.pool.release(chunkData) // the only reason this task is cancelled is if we're unloading the chunk
 
 				const cancelledQuadIdsByBlockAndSide = new Uint16Array(cancelledPayload.quadIdsByBlockAndSide)
-				const unusedVertexArrays = cancelledPayload.unusedVertexArrays.map(buffer => new Int32Array(buffer))
+				const unusedVertexArrays = cancelledPayload.unusedVertexArrays.map(buffer => new Uint32Array(buffer))
 				unusedVertexArrays.forEach(vertexArray => {
 					EngineChunkVertexArrayPool.release(vertexArray)
 				})
-				const vertexArrays = cancelledPayload.vertexArrays.map(buffer => new Int32Array(buffer))
+				const vertexArrays = cancelledPayload.vertexArrays.map(buffer => new Uint32Array(buffer))
 				vertexArrays.forEach(vertexArray => {
 					EngineChunkVertexArrayPool.release(vertexArray)
 				})
@@ -76,7 +76,7 @@ export default {
 		// get request
 		const blockData: Uint8Array = new Uint8Array(requestPayload.blockData)
 		const quadIdsByBlockAndSide: Uint16Array = new Uint16Array(requestPayload.quadIdsByBlockAndSide)
-		const initialVertexArrays: Array<geometrics.VertexArrayType> = requestPayload.initialVertexArrays.map(buffer => new Int32Array(buffer))
+		const initialVertexArrays: Array<geometrics.VertexArrayType> = requestPayload.initialVertexArrays.map(buffer => new Uint32Array(buffer))
 
 		// process request
 		quadIdsByBlockAndSide.fill(0)
