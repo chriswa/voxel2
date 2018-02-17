@@ -21,7 +21,7 @@ export default class LocalAuthority {
 
 	constructor() {
 		this.chunks = {}
-		this.chunkGenerator = new LocalChunkGenerator(chunkData => this.onChunkDataGenerated(chunkData))
+		this.chunkGenerator = new LocalChunkGenerator(this)
 		this.engine = new Engine(this)
 		this.playerPos = new v3(0, 0, 0)
 		this.playerRot = new v3(0, 0, 0)
@@ -40,7 +40,7 @@ export default class LocalAuthority {
 	onFrame(time: number) {
 		this.chunkGenerator.onFrame()
 		this.engine.authOnFrame(time)
-		DebugHud.updateChunks(Object.keys(this.chunks).length, Object.keys(this.engine.chunks).length)
+		DebugHud.updateChunks(Object.keys(this.chunks).length)
 	}
 
 	updatePlayerPos(newPlayerPos: v3, newPlayerRot: v3) {
@@ -81,17 +81,18 @@ export default class LocalAuthority {
 		if (chunk) { this.onChunkRemoved(chunk) }                    // if already loaded, unload it
 		else { this.chunkGenerator.cancelChunkGeneration(chunkPos) } // otherwise, cancel its queued generation
 	}
-	onChunkDataGenerated(chunkData: ChunkData) {
+	onChunkDataGenerated(chunkData: ChunkData, quadCount: number, vertexArrays: Array<geometrics.VertexArrayType>, quadIdsByBlockAndSide: Uint16Array) {
 		//DebugChunkLogger(chunkData.pos, "LocalAuthority.onChunkDataGenerated")
 		//console.log(`add chunk ${chunkData.id}`)
 		this.chunks[chunkData.id] = chunkData
-		this.engine.authAddChunkData(chunkData)
+		this.engine.authAddChunkData(chunkData, quadCount, vertexArrays, quadIdsByBlockAndSide)
 		// TODO: if engine isn't started yet, and enough (some? all?) chunks have been loaded, start it with engine.authStart()
 	}
 	onChunkRemoved(chunkData: ChunkData) {
 		//DebugChunkLogger(chunkData.pos, "LocalAuthority.onChunkRemoved")
 		delete this.chunks[chunkData.id]
-		this.engine.authRemoveChunkData(chunkData) // Engine is responsible for releasing chunkData to its pool
+		this.engine.authRemoveChunkData(chunkData)
+		ChunkData.pool.release(chunkData)
 	}
 
 	// "engine" functions are called by Engine to provide user interaction information

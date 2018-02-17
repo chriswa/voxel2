@@ -4,8 +4,6 @@ interface RecursiveDict {
 
 // default configuration
 const Config: RecursiveDict = {
-	chunkGenWorkers: true,
-	chunkInternalWorkers: true,
 	chunkRange: 5,
 	chunkLoading: true,
 	speed: 1,

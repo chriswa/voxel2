@@ -1,10 +1,10 @@
 import * as WorkerObligation from "./worker/WorkerObligation"
-import TaskGenerateChunk from "./worker/TaskGenerateChunk"
 import TaskDrawInternalVerts from "./worker/TaskDrawInternalVerts"
+import TaskGenerateAndMeshChunk from "./worker/TaskGenerateAndMeshChunk"
 
 importScripts('//unpkg.com/lodash@4.17.4/lodash.js')
 
 WorkerObligation.registerTaskHandlers([
-	TaskGenerateChunk,
 	TaskDrawInternalVerts,
+	TaskGenerateAndMeshChunk,
 ])

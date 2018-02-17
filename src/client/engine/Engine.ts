@@ -16,14 +16,9 @@ import TaskDrawInternalVerts from "../worker/TaskDrawInternalVerts"
 import DebugChunkLogger from "../DebugChunkLogger"
 import DebugFrameLogger from "../DebugFrameLogger"
 import EngineChunkVertexArrayPool from "./chunk/EngineChunkVertexArrayPool"
+import EngineChunkQuadLookupPool from "./chunk/EngineChunkQuadLookupPool"
 
 const m4 = twgl.m4
-
-const quadIdsByBlockAndSidePool = new Pool(
-	() => {
-		return new Uint16Array(geometrics.CHUNK_SIZE_CUBED * geometrics.facesPerCube)
-	}
-)
 
 const projectionMatrix = m4.identity() // set below
 const fov = 60 * Math.PI / 180
@@ -70,36 +65,25 @@ export default class Engine {
 		this.playerInput.pitch = newRot.x
 		this.playerInput.heading = newRot.y
 	}
-	authAddChunkData(chunkData: ChunkData) {
+	authAddChunkData(chunkData: ChunkData, quadCount: number, vertexArrays: Array<geometrics.VertexArrayType>, quadIdsByBlockAndSide: Uint16Array) {
 		//DebugFrameLogger("Engine.authAddChunkData")
 		//DebugChunkLogger(chunkData.pos, "Engine.authAddChunkData")
 
-		if (<boolean>Config.chunkInternalWorkers) {
+		//this.chunkDrawTaskIds[chunkData.id] = TaskDrawInternalVerts.queue( // n.b. this task will release chunkData if cancelled
+		//	chunkData, EngineChunkQuadLookupPool,
+		//	(quadCount, vertexArrays, quadIdsByBlockAndSide) => {
+		//		delete this.chunkDrawTaskIds[chunkData.id]
+		//		this.authAddChunkData_withInternalQuads(chunkData, quadCount, vertexArrays, quadIdsByBlockAndSide)
+		//	}
+		//)
 
-			this.chunkDrawTaskIds[chunkData.id] = TaskDrawInternalVerts.queue( // n.b. this task will release chunkData if cancelled
-				chunkData, quadIdsByBlockAndSidePool,
-				(quadCount, vertexArrays, quadIdsByBlockAndSide) => {
-					delete this.chunkDrawTaskIds[chunkData.id]
-					this.authAddChunkData_withInternalQuads(chunkData, quadCount, vertexArrays, quadIdsByBlockAndSide)
-				}
-			)
-
-		}
-		else {
-			const quadIdsByBlockAndSide = quadIdsByBlockAndSidePool.acquire()
-			const { quadCount, vertexArrays, unusedVertexArrays } = EngineChunkBuilder.drawInternalChunkQuads(chunkData.blocks, quadIdsByBlockAndSide)
-			unusedVertexArrays.forEach(vertexArray => {
-				EngineChunkVertexArrayPool.release(vertexArray)
-			})
-			this.authAddChunkData_withInternalQuads(chunkData, quadCount, vertexArrays, quadIdsByBlockAndSide)
-		}
-	}
-	authAddChunkData_withInternalQuads(chunkData: ChunkData, quadCount: number, initialVertexArrays: Array<geometrics.VertexArrayType>, quadIdsByBlockAndSide: Uint16Array) {
+	//}
+	//authAddChunkData_withInternalQuads(chunkData: ChunkData, quadCount: number, initialVertexArrays: Array<geometrics.VertexArrayType>, quadIdsByBlockAndSide: Uint16Array) {
 		//DebugFrameLogger("Engine.authAddChunkData_withInternalQuads")
 		//DebugChunkLogger(chunkData.pos, "Engine.authAddChunkData_withInternalQuads")
 
 		// create our chunk object
-		const chunk = new EngineChunk(chunkData, quadCount, initialVertexArrays, quadIdsByBlockAndSide)
+		const chunk = new EngineChunk(chunkData, quadCount, vertexArrays, quadIdsByBlockAndSide)
 		this.chunks[chunkData.id] = chunk
 
 		// attach chunk to neighbours, stitching meshes as required
@@ -119,27 +103,17 @@ export default class Engine {
 		//DebugChunkLogger(chunkData.pos, "Engine.authRemoveChunkData")
 
 		const chunk = this.chunks[chunkData.id]
-		if (chunk) {
-			geometrics.Sides.each(side => {
-				const neighbourChunk = chunk.neighboursBySideId[side.id]
-				if (neighbourChunk) {
-					//EngineChunkBuilder.unstitchChunk(neighbourChunk, side.opposite)
-					neighbourChunk.detatchNeighbour(side.opposite)
-				}
-			})
-			quadIdsByBlockAndSidePool.release(chunk.quadIdsByBlockAndSide)
-			ChunkData.pool.release(chunkData)
-			chunk.destroy()
-			delete this.chunks[chunkData.id]
-		}
-		else {
-			
-			const taskId = this.chunkDrawTaskIds[chunkData.id]
-			if (taskId) {
-				TaskDrawInternalVerts.cancel(taskId)
-			}
 
-		}
+		geometrics.Sides.each(side => {
+			const neighbourChunk = chunk.neighboursBySideId[side.id]
+			if (neighbourChunk) {
+				//EngineChunkBuilder.unstitchChunk(neighbourChunk, side.opposite)
+				neighbourChunk.detatchNeighbour(side.opposite)
+			}
+		})
+		EngineChunkQuadLookupPool.release(chunk.quadIdsByBlockAndSide)
+		chunk.destroy()
+		delete this.chunks[chunkData.id]
 	}
 	authAddEntity() {
 	}

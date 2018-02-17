@@ -2,17 +2,17 @@ import ChunkData from "../ChunkData"
 import v3 from "v3"
 import ChunkGeneration from "./ChunkGeneration"
 import * as WorkerManager from "../worker/WorkerManager"
-import Config from "../Config"
-import TaskGenerateChunk from "../worker/TaskGenerateChunk"
+import TaskGenerateAndMeshChunk from "../worker/TaskGenerateAndMeshChunk"
 import DebugChunkLogger from "../DebugChunkLogger"
 import DebugFrameLogger from "../DebugFrameLogger"
+import LocalAuthority from "./LocalAuthority"
 
 export default class LocalChunkGenerator {
 
 	queue: { [key: string]: v3 }
 	tasks: { [key: string]: number }
 
-	constructor(private onChunkDataGenerated: (chunkData: ChunkData) => void) {
+	constructor(private localAuthority: LocalAuthority) {
 		this.queue = {}
 		this.tasks = {}
 	}
@@ -27,7 +27,7 @@ export default class LocalChunkGenerator {
 		const chunkId = chunkPos.toString()
 		const taskId = this.tasks[chunkId]
 		if (taskId) {
-			TaskGenerateChunk.cancel(taskId)
+			TaskGenerateAndMeshChunk.cancel(taskId)
 			delete this.tasks[chunkId]
 		}
 		else if (this.queue[chunkId]) {
@@ -38,8 +38,10 @@ export default class LocalChunkGenerator {
 		let chunkPos
 		for (var chunkId in this.queue) { // NOT A LOOP!
 			chunkPos = this.queue[chunkId]
-			this.generateChunk(chunkPos)
 			break
+		}
+		if (chunkPos) {
+			this.generateChunk(chunkPos)
 		}
 	}
 	generateChunk(chunkPos: v3) {
@@ -48,25 +50,15 @@ export default class LocalChunkGenerator {
 
 		const chunkId = chunkPos.toString()
 
-		if (<boolean>Config.chunkGenWorkers) {
-			delete this.queue[chunkId]
-			
-			this.tasks[chunkId] = TaskGenerateChunk.queue(
-				chunkPos,
-				(chunkData) => {
-					this.onChunkDataGenerated(chunkData)
-					delete this.tasks[chunkId]
-				}
-			)
+		delete this.queue[chunkId]
+		
+		this.tasks[chunkId] = TaskGenerateAndMeshChunk.queue(
+			chunkPos,
+			(chunkData, quadCount, vertexArrays, quadIdsByBlockAndSide) => {
+				this.localAuthority.onChunkDataGenerated(chunkData, quadCount, vertexArrays, quadIdsByBlockAndSide)
+				delete this.tasks[chunkId]
+			}
+		)
 
-
-		}
-		else {
-			const chunkData = ChunkData.pool.acquire() // n.b. chunkData may contain old data, so make sure to set everything!
-			chunkData.setChunkPos(chunkPos)
-			ChunkGeneration.generateChunk(chunkPos, chunkData.blocks)
-			this.onChunkDataGenerated(chunkData)
-			delete this.queue[chunkId]
-		}
 	}
 }

@@ -10,8 +10,7 @@ export default new class DebugHud {
 	playerPos: v3 = new v3()
 	playerRot: v3 = new v3()
 
-	authorityChunkCount: number
-	engineChunkCount: number
+	loadedChunkCount: number
 
 	// frameTimes: Array<number> = []
 	// frameElapsed: Array<number> = []
@@ -59,9 +58,8 @@ export default new class DebugHud {
 		this.update()
 	}
 
-	updateChunks(authorityChunkCount_: number, engineChunkCount_: number) {
-		this.authorityChunkCount = authorityChunkCount_
-		this.engineChunkCount = engineChunkCount_
+	updateChunks(loadedChunkCount_: number) {
+		this.loadedChunkCount = loadedChunkCount_
 	}
 
 	update() {
@@ -71,7 +69,7 @@ export default new class DebugHud {
 		text += `in chunk ${geometrics.worldPosToChunkPos(this.playerPos).toString()} `
 		text += `facing ${["NORTH","WEST","SOUTH","EAST"][quadrant]}\n` // why is this backwards?! is my camera backwards?
 		text += `pos = ${Math.floor(this.playerPos.x)},${Math.floor(this.playerPos.y)},${Math.floor(this.playerPos.z)}\n`
-		text += `loaded ${this.engineChunkCount} / ${this.authorityChunkCount}`
+		text += `loaded chunks: ${this.loadedChunkCount}`
 		this.textNode.data = text
 	}
 }
