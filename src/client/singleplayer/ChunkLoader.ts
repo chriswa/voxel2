@@ -1,7 +1,6 @@
 import * as geometrics from "geometrics"
 import ChunkData from "../ChunkData"
 import v3 from "v3"
-import ChunkGeneration from "./ChunkGeneration"
 import * as WorkerManager from "../worker/WorkerManager"
 import TaskGenerateAndMeshChunk from "../worker/TaskGenerateAndMeshChunk"
 import DebugChunkLogger from "../DebugChunkLogger"

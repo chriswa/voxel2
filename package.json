@@ -23,6 +23,7 @@
     "html-webpack-plugin": "^2.30.1",
     "js-combinatorics": "^0.5.2",
     "keycode": "^2.1.9",
+    "libnoise": "^0.2.1",
     "lodash": "^4.17.4",
     "ts-loader": "^3.2.0",
     "twgl.js": "^3.8.0",

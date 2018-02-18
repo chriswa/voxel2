@@ -50,7 +50,7 @@ var gradP = new Array(512);
 
 // This isn't a very good seeding function, but it works ok. It supports 2^16
 // different seed values. Write something better if you need more seeds.
-function seed(seed: number) {
+export function seed(seed: number) {
 	if (seed > 0 && seed < 1) {
 		// Scale the seed out
 		seed *= 65536;
@@ -90,7 +90,7 @@ var F3 = 1 / 3;
 var G3 = 1 / 6;
 
 // 2D simplex noise
-function simplex2(xin: number, yin: number) {
+export function simplex2(xin: number, yin: number) {
 	var n0, n1, n2; // Noise contributions from the three corners
 	// Skew the input space to determine which simplex cell we're in
 	var s = (xin + yin) * F2; // Hairy factor for 2D
@@ -148,7 +148,7 @@ function simplex2(xin: number, yin: number) {
 };
 
 // 3D simplex noise
-function simplex3(xin: number, yin: number, zin: number) {
+export function simplex3(xin: number, yin: number, zin: number) {
 	var n0, n1, n2, n3; // Noise contributions from the four corners
 
 	// Skew the input space to determine which simplex cell we're in
@@ -309,7 +309,7 @@ function perlin3(x: number, y: number, z: number) {
 
 let fbm_counter = 0
 
-class Noise3d {
+export class FBM3 {
 
 	workVector: v3
 	octaves: number
@@ -341,7 +341,7 @@ class Noise3d {
 		return this
 	}
 	clone() {
-		var obj = new Noise3d(this.scale, this.offset)
+		var obj = new FBM3(this.scale, this.offset)
 		obj.setFractal(this.octaves, this.persistance, this.lacunarity)
 		return obj
 	}
@@ -375,13 +375,13 @@ class Noise3d {
 	}
 }
 
-class NoiseWarp3d {
+export class NoiseWarp3d {
 	scale: number
-	noise_x: Noise3d
-	noise_y: Noise3d
-	noise_z: Noise3d
+	noise_x: FBM3
+	noise_y: FBM3
+	noise_z: FBM3
 	workVector: v3
-	constructor(scale: number, noiseSource: Noise3d) {
+	constructor(scale: number, noiseSource: FBM3) {
 		this.scale = scale
 		this.noise_x = noiseSource.clone().randomizeOffset()
 		this.noise_y = noiseSource.clone().randomizeOffset()
@@ -406,18 +406,18 @@ class NoiseWarp3d {
 
 
 
-class CellNoise {
+export class CellNoise {
 	scale: number
-	noisex: Noise3d
-	noisez: Noise3d
-	noiseq: Noise3d
+	noisex: FBM3
+	noisez: FBM3
+	noiseq: FBM3
 	workVector: v3
 	winningGridCoord: v3
 	constructor(scale: number) {
 		this.scale = scale
-		this.noisex = new Noise3d(1)
-		this.noisez = new Noise3d(1)
-		this.noiseq = new Noise3d(1)
+		this.noisex = new FBM3(1)
+		this.noisez = new FBM3(1)
+		this.noiseq = new FBM3(1)
 		this.workVector = new v3()
 		this.winningGridCoord = new v3()
 	}
@@ -445,14 +445,4 @@ class CellNoise {
 		var closestNoise = this.noiseq.sample2(this.winningGridCoord)
 		return [smallestD, closestNoise]
 	}
-}
-
-
-export default {
-	Noise3d,
-	NoiseWarp3d,
-	CellNoise,
-	seed: seed,
-	simplex3: simplex3,
-	simplex2: simplex2,
 }
