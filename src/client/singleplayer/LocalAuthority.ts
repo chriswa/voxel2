@@ -1,7 +1,6 @@
 import * as geometrics from "geometrics"
 import Engine from "../engine/Engine"
-import VoxelsInMovingSphere from "VoxelsInMovingSphere"
-import LocalChunkGenerator from "./LocalChunkGenerator"
+import ChunkLoader from "./ChunkLoader"
 import v3 from "v3"
 import ChunkData from "../ChunkData"
 import Config from "../Config"
@@ -13,15 +12,14 @@ const chunkLoadRadius = <number>Config.chunkRange
 export default class LocalAuthority {
 
 	chunks: { [key: string]: ChunkData }
-	chunkGenerator: LocalChunkGenerator
+	chunkLoader: ChunkLoader
 	engine: Engine
 	playerPos: v3
 	playerRot: v3
-	voxelsInMovingSphere: VoxelsInMovingSphere
 
 	constructor() {
 		this.chunks = {}
-		this.chunkGenerator = new LocalChunkGenerator(this)
+		this.chunkLoader = new ChunkLoader(this, chunkLoadRadius)
 		this.engine = new Engine(this)
 		this.playerPos = new v3(0, 0, 0)
 		this.playerRot = new v3(0, 0, 0)
@@ -34,13 +32,11 @@ export default class LocalAuthority {
 		//	this.engine.authSetPlayerTransform(this.playerPos, this.playerRot)
 		//}
 		
-		this.voxelsInMovingSphere = new VoxelsInMovingSphere(chunkLoadRadius)
 		this.updatePlayerPos(this.playerPos, this.playerRot) // start chunks loading
 	}
 	onFrame(time: number) {
-		this.chunkGenerator.onFrame()
 		this.engine.authOnFrame(time)
-		DebugHud.updateChunks(Object.keys(this.chunks).length)
+		this.chunkLoader.onFrame() // calls onChunkLoaded and onChunkUnloaded
 	}
 
 	updatePlayerPos(newPlayerPos: v3, newPlayerRot: v3) {
@@ -57,39 +53,16 @@ export default class LocalAuthority {
 		if (<boolean>Config["chunkLoading"]) {
 
 			// load and unload chunks as needed
-			const chunkPos = geometrics.worldPosToChunkPos(newPlayerPos)
-			this.voxelsInMovingSphere.update(
-				chunkPos,
-				(chunkPos) => {
-					this.loadChunk(chunkPos)
-				},
-				(chunkPos) => {
-					this.unloadChunk(chunkPos)
-				}
-			)
+			this.chunkLoader.updatePlayerPos(newPlayerPos)
 		}
 	}
 
-	loadChunk(chunkPos: v3) {
-		//DebugChunkLogger(chunkPos, "LocalAuthority.loadChunk")
-		this.chunkGenerator.queueChunkGeneration(chunkPos) // this will call this.onChunkDataGenerated asynchronously
-	}
-	unloadChunk(chunkPos: v3) {
-		//DebugChunkLogger(chunkPos, "LocalAuthority.unloadChunk")
-		const chunkId = chunkPos.toString()
-		const chunk = this.chunks[chunkId]
-		if (chunk) { this.onChunkRemoved(chunk) }                    // if already loaded, unload it
-		else { this.chunkGenerator.cancelChunkGeneration(chunkPos) } // otherwise, cancel its queued generation
-	}
-	onChunkDataGenerated(chunkData: ChunkData, quadCount: number, vertexArrays: Array<geometrics.VertexArrayType>, quadIdsByBlockAndSide: Uint16Array) {
-		//DebugChunkLogger(chunkData.pos, "LocalAuthority.onChunkDataGenerated")
-		//console.log(`add chunk ${chunkData.id}`)
+	onChunkLoaded(chunkData: ChunkData, quadCount: number, vertexArrays: Array<geometrics.VertexArrayType>, quadIdsByBlockAndSide: Uint16Array) {
 		this.chunks[chunkData.id] = chunkData
 		this.engine.authAddChunkData(chunkData, quadCount, vertexArrays, quadIdsByBlockAndSide)
 		// TODO: if engine isn't started yet, and enough (some? all?) chunks have been loaded, start it with engine.authStart()
 	}
-	onChunkRemoved(chunkData: ChunkData) {
-		//DebugChunkLogger(chunkData.pos, "LocalAuthority.onChunkRemoved")
+	onChunkUnloaded(chunkData: ChunkData) {
 		delete this.chunks[chunkData.id]
 		this.engine.authRemoveChunkData(chunkData)
 		ChunkData.pool.release(chunkData)

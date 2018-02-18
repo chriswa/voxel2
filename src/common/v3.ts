@@ -35,10 +35,10 @@ export default class v3 {
 		return this
 	}
 	toString() {
-		return this.a.join(",")
+		return this.a[0] + ',' + this.a[1] + ',' + this.a[2]
 	}
 	get id() {
-		return this.a.join(",")
+		return this.a[0] + ',' + this.a[1] + ',' + this.a[2]
 	}
 
 	// operations involving no arguments

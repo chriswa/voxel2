@@ -7,6 +7,8 @@ export default class ChunkData {
 	pos: v3
 	id: string
 	blocks: Uint8Array
+	chunkLoaderTag: number
+	chunkLoaderUnloading: boolean
 
 	constructor() {
 		this.pos = new v3()

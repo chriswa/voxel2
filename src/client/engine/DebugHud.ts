@@ -7,16 +7,9 @@ export default new class DebugHud {
 	div: HTMLElement
 	textNode: Text
 
-	playerPos: v3 = new v3()
-	playerRot: v3 = new v3()
+	posString: string
+	chunkString: string
 
-	loadedChunkCount: number
-
-	// frameTimes: Array<number> = []
-	// frameElapsed: Array<number> = []
-	// fps: number = 0
-	// slowestFrame: number = 0
-	
 	init() {
 		this.div = document.createElement("div")
 		this.div.style.position = "absolute"
@@ -36,40 +29,24 @@ export default new class DebugHud {
 		this.update()
 	}
 
-	// frameTick(currentTime: number) {
-	// 	const elapsedTime = this.frameTimes.length ? currentTime - this.frameTimes[this.frameTimes.length - 1] : 0
-
-	// 	while (this.frameTimes.length > 0 && this.frameTimes[0] <= currentTime - 1000) {
-	// 		this.frameTimes.shift()
-	// 		this.frameElapsed.shift()
-	// 	}
-
-	// 	this.frameTimes.push(currentTime)
-	// 	this.frameElapsed.push(elapsedTime)
-
-	// 	this.fps = this.frameTimes.length
-	// 	this.slowestFrame = _.max(this.frameElapsed)
-	// 	this.slowestFrame = this.slowestFrame ? Math.round(1000 / this.slowestFrame) : 0
-	// }
-
 	updatePlayer(playerPos: v3, playerRot: v3) {
-		this.playerPos.setFrom(playerPos)
-		this.playerRot.setFrom(playerRot)
+		this.posString = ""
+		const quadrant = Math.round(playerRot.y / Math.PI * 2) % 4
+		this.posString += `in chunk ${geometrics.worldPosToChunkPos(playerPos).toString()} `
+		this.posString += `facing ${["NORTH", "WEST", "SOUTH", "EAST"][quadrant]}\n` // why is this backwards?! is my camera backwards?
+		this.posString += `pos = ${Math.floor(playerPos.x)},${Math.floor(playerPos.y)},${Math.floor(playerPos.z)}`
 		this.update()
 	}
 
-	updateChunks(loadedChunkCount_: number) {
-		this.loadedChunkCount = loadedChunkCount_
+	updateChunks(loadedChunkCount: number, addQueueLength: number, removeQueueLength: number) {
+		this.chunkString = `loaded chunks: ${loadedChunkCount}, +${addQueueLength}, -${removeQueueLength}`
+		this.update()
 	}
 
 	update() {
 		let text = ""
-		// text += `FPS: ${this.fps} .. ${this.slowestFrame}\n`
-		const quadrant = Math.round(this.playerRot.y / Math.PI * 2) % 4
-		text += `in chunk ${geometrics.worldPosToChunkPos(this.playerPos).toString()} `
-		text += `facing ${["NORTH","WEST","SOUTH","EAST"][quadrant]}\n` // why is this backwards?! is my camera backwards?
-		text += `pos = ${Math.floor(this.playerPos.x)},${Math.floor(this.playerPos.y)},${Math.floor(this.playerPos.z)}\n`
-		text += `loaded chunks: ${this.loadedChunkCount}`
+		text += this.posString + "\n"
+		text += this.chunkString
 		this.textNode.data = text
 	}
 }

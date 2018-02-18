@@ -206,7 +206,11 @@ export default class Engine {
 		let renderBudget = 1000 // TODO: this is a totally arbitrary number
 		for (let chunkId in this.chunks) {
 			let chunk = this.chunks[chunkId]
+
+			//if (chunk.chunkData.chunkLoaderUnloading) { continue }
+
 			m4.translation(chunk.worldPos.a, worldViewProjectionMatrix)
+			if (chunk.chunkData.chunkLoaderUnloading) { m4.translation(chunk.worldPos.clone().add(new v3(0,10,0)).a, worldViewProjectionMatrix) } // TESTING
 			//m4.translation(chunk.worldPos.clone().multiplyScalar(1.001).a, worldViewProjectionMatrix) // VISIBLE GAP (and accumulated errors)
 			m4.multiply(viewProjectionMatrix, worldViewProjectionMatrix, worldViewProjectionMatrix)
 			EngineChunkRenderer.setWorldViewProjectionMatrix(worldViewProjectionMatrix)
