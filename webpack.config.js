@@ -2,7 +2,6 @@ var path = require("path")
 var webpack = require("webpack")
 //var ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 var HtmlWebpackPlugin = require("html-webpack-plugin")
-var UglifyJSPlugin = require("uglifyjs-webpack-plugin")
 
 const config = {
 	entry: "./src/client/main.ts",
@@ -12,7 +11,7 @@ const config = {
 	},
 	output: {
 		path: path.resolve(__dirname, "./dist"),
-		publicPath: "/",
+		//publicPath: "/",
 		//filename: "bundle-[hash].js",
 		filename: "bundle.js",
 	},
@@ -44,10 +43,26 @@ const config = {
 				use: {
 					loader: 'worker-loader',
 					options: {
-						name: 'worker.js', // no [hash] !
+						name: 'worker.js',
+						externals: {
+							"lodash": "_", // doesn't work :(
+						},
+						// inline: true,
+						// fallback: false,
 					},
 				},
 			},
+			//{
+			//	test: /\.worker\.js$/,
+			//	use: {
+			//		loader: 'worker-loader',
+			//		options: {
+			//			name: 'worker.js', // no [hash] !
+			//			// inline: true,
+			//			// fallback: false,
+			//		},
+			//	},
+			//},
 			//{
 			//	test: /\.(png|jpg|gif|svg)$/,
 			//	loader: "file-loader",
@@ -77,31 +92,5 @@ const config = {
 config.plugins.push(new HtmlWebpackPlugin({
 	template: "src/client/index.ejs",
 }))
-
-if (process.env.NODE_ENV === "production") {
-	config.devtool = "#source-map"
-	// http://vue-loader.vuejs.org/en/workflow/production.html
-	config.plugins = config.plugins || []
-	config.plugins.push(
-		new webpack.DefinePlugin({
-			"process.env": {
-				NODE_ENV: "\"production\""
-			}
-		})
-	)
-	config.plugins.push(
-		new UglifyJSPlugin({
-			sourceMap: true,
-			compress: {
-				warnings: false
-			}
-		})
-	)
-	config.plugins.push(
-		new webpack.LoaderOptionsPlugin({
-			minimize: true
-		})
-	)
-}
 
 module.exports = config

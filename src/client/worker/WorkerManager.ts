@@ -1,4 +1,3 @@
-import * as _ from "lodash"
 import DebugFrameLogger from "../DebugFrameLogger"
 
 
@@ -141,8 +140,17 @@ function startWorker(worker: WorkerController, task: Task) {
 
 export function cancelTask(taskId: number): boolean {
 	// if the task is still in the queue, simply remove it (we never called onStart, so according to our contract, we don't need to call onComplete)
-	const taskFromQueue = _.remove(queuedTasks, (task: Task) => task.taskId === taskId)
-	if (taskFromQueue.length) {
+	// aka: const taskFromQueue = _.remove(queuedTasks, (task: Task) => task.taskId === taskId)
+	let taskFromQueue
+	for (let i = 0; i < queuedTasks.length; i += 1) {
+		let task = queuedTasks[i]
+		if (task.taskId === taskId) {
+			taskFromQueue = task
+			queuedTasks.splice(i, 1)
+			break
+		}
+	}
+	if (taskFromQueue) {
 		return true
 	}
 	// otherwise, we need to stop an active worker...

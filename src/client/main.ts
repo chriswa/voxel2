@@ -4,13 +4,13 @@ import * as DebugFrameLogger from "./DebugFrameLogger"
 
 // support browser gl debugging tool "Spector" capturing from very start of script execution
 // http://www.realtimerendering.com/blog/debugging-webgl-with-spectorjs/
-if (global.spector) {
-	//spector.captureNextFrame(gl)
-	global.spector.startCapture(gl, 10000) // max calls to capture
-	setTimeout(() => {
-		global.spector.stopCapture()
-	}, 2000)
-}
+//if (global.spector) {
+//	//spector.captureNextFrame(gl)
+//	global.spector.startCapture(gl, 10000) // max calls to capture
+//	setTimeout(() => {
+//		global.spector.stopCapture()
+//	}, 2000)
+//}
 
 // init web workers
 WorkerOverseer.init()
@@ -32,10 +32,3 @@ function onFrame(time: number) {
 	requestAnimationFrame(onFrame)
 }
 requestAnimationFrame(onFrame)
-
-
-
-//import Worker from "worker-loader!./Worker"
-//const worker = new Worker();
-//worker.postMessage({ a: 1 });
-//worker.addEventListener("message", (event) => { console.log("worker responded with: ", event) });

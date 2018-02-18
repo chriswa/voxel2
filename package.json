@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "node node_modules/webpack/bin/webpack.js --env.NODE_ENV=production --progress --display-modules --display-reasons",
+    "build": "node node_modules/webpack/bin/webpack.js --config webpack-prod.config.js --progress --display-modules --display-reasons",
     "dev": "node --max-old-space-size=2048 node_modules/webpack-dev-server/bin/webpack-dev-server.js --env.NODE_ENV=development --host localhost --content-base dist/ --progress",
     "devhot": "node --max-old-space-size=2048 node_modules/webpack-dev-server/bin/webpack-dev-server.js --env.NODE_ENV=development --hot --host localhost --content-base dist/ --progress"
   },

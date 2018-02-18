@@ -1,4 +1,3 @@
-import * as _ from "lodash"
 import * as geometrics from "geometrics"
 import BlockTypes from "BlockTypes"
 import BlockPos from "BlockPos"
@@ -212,10 +211,11 @@ export default {
 						}
 
 						// update AO
-						_.each(side1.tangents, ({ side: tangentSide }) => {
+						for (let i = 0; i < side1.tangents.length; i += 1) {
+							const tangentSide = side1.tangents[i].side
 							fixAO(nearBlockPos, tangentSide)
 							fixAO(farBlockPos, tangentSide)
-						})
+						}
 					})
 
 					// for each edge...

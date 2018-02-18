@@ -1,4 +1,3 @@
-import * as _ from "lodash"
 import * as geometrics from "geometrics"
 import EngineChunk from "./chunk/EngineChunk"
 import * as EngineChunkRenderer from "./chunk/EngineChunkRenderer"

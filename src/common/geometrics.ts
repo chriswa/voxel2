@@ -1,5 +1,4 @@
 import v3 from "v3"
-import * as _ from "lodash"
 
 export const CHUNK_SIZE         = 32
 export const CHUNK_SIZE_SQUARED = CHUNK_SIZE * CHUNK_SIZE
